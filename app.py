@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-st.set_page_config(page_title="AI Vigilance Grid (AIVG)", page_icon="🛡️")
+# Set page layout to wide so tables don't get cut off on mobile devices
+st.set_page_config(page_title="AI Vigilance Grid (AIVG)", page_icon="🛡️", layout="wide")
 
 st.title("🛡️ AI Vigilance Grid (AIVG)")
 st.caption("Odiaprenuer 3.0 Smart Odisha Hackathon | Cyber Security from Corruption")
@@ -17,9 +18,8 @@ menu = st.sidebar.selectbox("Select System Data Feed", ["Payroll & Salary Logs",
 
 if menu == "Payroll & Salary Logs":
     st.header("📊 Real-Time Multi-Employee Audit Module")
-    st.info("💡 **Interactive Demo:** Click inside any row below to directly edit salary amounts or biometric verification status!")
+    st.info("💡 **Interactive Demo:** Click inside any row below to edit salary amounts or biometric verification status!")
 
-    # Initial employee table data
     initial_data = pd.DataFrame([
         {"Employee ID": "EMP_001", "Name": "Ramesh Mohanty", "Biometric Status": "Verified ✅", "Salary (INR)": 45000},
         {"Employee ID": "EMP_002", "Name": "Sita Das", "Biometric Status": "Verified ✅", "Salary (INR)": 50000},
@@ -30,28 +30,32 @@ if menu == "Payroll & Salary Logs":
         {"Employee ID": "EMP_007", "Name": "Manas Swain", "Biometric Status": "Verified ✅", "Salary (INR)": 44000},
     ])
 
-    # Make the whole table interactive/editable
+    # Table configuration optimized for full visibility
     edited_df = st.data_editor(
         initial_data,
         column_config={
+            "Employee ID": st.column_config.TextColumn("Employee ID", width="small"),
+            "Name": st.column_config.TextColumn("Name", width="medium"),
             "Biometric Status": st.column_config.SelectboxColumn(
                 "Biometric Status",
                 options=["Verified ✅", "Unverified ❌"],
-                required=True
+                required=True,
+                width="medium"
             ),
             "Salary (INR)": st.column_config.NumberColumn(
                 "Salary (INR)",
                 min_value=10000,
                 max_value=500000,
                 step=5000,
-                format="₹%d"
+                format="₹%d",
+                width="small"
             )
         },
         use_container_width=True,
-        num_rows="dynamic"  # Allows you to add/delete rows live if needed!
+        num_rows="dynamic"
     )
 
-    # Real-Time Anomaly Detection Engine across ALL employees
+    # Anomaly Check
     flagged_employees = edited_df[
         (edited_df["Salary (INR)"] > 70000) | (edited_df["Biometric Status"] == "Unverified ❌")
     ]
@@ -59,11 +63,9 @@ if menu == "Payroll & Salary Logs":
     if not flagged_employees.empty:
         st.error(f"🚨 **AUTOMATED VIGILANCE ALERT DETECTED ({len(flagged_employees)} Anomaly Found)!**")
         
-        # Display each flagged record details
         for _, row in flagged_employees.iterrows():
             st.warning(f"⚠️ **Flagged Record:** {row['Employee ID']} ({row['Name']}) | Salary: ₹{row['Salary (INR)']:,} | Status: {row['Biometric Status']}")
         
-        # WhatsApp Pre-filled Alert Message
         summary_text = "\n".join([f"- {r['Employee ID']} ({r['Name']}): ₹{r['Salary (INR)']} [{r['Biometric Status']}]" for _, r in flagged_employees.iterrows()])
         wa_text = f"🚨 *AIVG EMERGENCY VIGILANCE ALERT*\n\nAnomalies detected in Payroll Feed:\n{summary_text}\n\n*Action Required:* Immediate audit review."
         encoded_text = urllib.parse.quote(wa_text)
@@ -88,14 +90,15 @@ elif menu == "Tender Overpricing Audit":
     edited_tenders = st.data_editor(
         initial_tenders,
         column_config={
-            "Budget (Lakhs)": st.column_config.NumberColumn(format="₹%d Lakhs"),
-            "Winning Bid (Lakhs)": st.column_config.NumberColumn(format="₹%d Lakhs"),
+            "Tender ID": st.column_config.TextColumn("Tender ID", width="small"),
+            "Department": st.column_config.TextColumn("Department", width="medium"),
+            "Budget (Lakhs)": st.column_config.NumberColumn("Budget (Lakhs)", format="₹%d Lakhs", width="small"),
+            "Winning Bid (Lakhs)": st.column_config.NumberColumn("Winning Bid (Lakhs)", format="₹%d Lakhs", width="small"),
         },
         use_container_width=True,
         num_rows="dynamic"
     )
 
-    # Calculate percentage deviation for all tenders
     edited_tenders["Increase %"] = ((edited_tenders["Winning Bid (Lakhs)"] - edited_tenders["Budget (Lakhs)"]) / edited_tenders["Budget (Lakhs)"]) * 100
     flagged_tenders = edited_tenders[edited_tenders["Increase %"] > 40]
 
@@ -113,6 +116,7 @@ elif menu == "Tender Overpricing Audit":
         st.link_button("🚨 Dispatch Real-Time WhatsApp Alert to Officer", wa_url)
     else:
         st.success("🟢 **TENDERS APPROVED:** All winning bids are within safe threshold limits (<40% deviation).")
+        
         
         
     

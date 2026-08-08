@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import requests
+import urllib.parse
 
 st.set_page_config(page_title="AI Vigilance Grid (AIVG)", page_icon="🛡️")
 
@@ -9,124 +9,111 @@ st.caption("Odiaprenuer 3.0 Smart Odisha Hackathon | Cyber Security from Corrupt
 
 st.markdown("---")
 
-# 1. Authority Configuration
-st.sidebar.header("📱 Vigilance Authority Contact")
-authority_phone = st.sidebar.text_input("Authority Mobile Number:", value="9876543210")
-fast2sms_api_key = st.sidebar.text_input("Fast2SMS API Key (Optional):", type="password")
+# Sidebar Configuration
+st.sidebar.header("📱 Higher Officer Dispatch Settings")
+officer_phone = st.sidebar.text_input("Officer Mobile (Country Code e.g., 919876543210):", value="919876543210")
 
-def trigger_auto_sms(phone, message_text):
-    """Sends automatic SMS via Fast2SMS API"""
-    if not fast2sms_api_key:
-        return False, "No API Key provided (Running Simulation Mode)"
-    
-    url = "https://www.fast2sms.com/dev/bulkV2"
-    payload = {
-        "variables_values": message_text,
-        "route": "otp",
-        "numbers": phone
-    }
-    headers = {
-        'authorization': fast2sms_api_key,
-        'Content-Type': "application/x-www-form-urlencoded"
-    }
-    
-    try:
-        response = requests.post(url, data=payload, headers=headers)
-        if response.status_code == 200:
-            return True, "SMS Dispatched"
-        else:
-            return False, response.text
-    except Exception as e:
-        return False, str(e)
-
-# 2. Main Navigation
 menu = st.sidebar.selectbox("Select System Data Feed", ["Payroll & Salary Logs", "Tender Overpricing Audit"])
 
 if menu == "Payroll & Salary Logs":
-    st.header("📊 Real-Time Payroll Audit Module")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        salary_input = st.number_input("Enter Salary Amount (INR):", min_value=10000, max_value=500000, value=85000, step=5000)
-    with col2:
-        bio_status = st.selectbox("Biometric Status:", ["Unverified ❌", "Verified ✅"])
+    st.header("📊 Real-Time Multi-Employee Audit Module")
+    st.info("💡 **Interactive Demo:** Click inside any row below to directly edit salary amounts or biometric verification status!")
 
-    data = [
-        {"Employee ID": "EMP_001", "Name": "Ramesh Mohanty", "Biometric Status": "Verified ✅", "Salary Credited": "₹45,000", "AI Status": "Normal ✅"},
-        {"Employee ID": "EMP_002", "Name": "Sita Das", "Biometric Status": "Verified ✅", "Salary Credited": "₹50,000", "AI Status": "Normal ✅"},
-        {"Employee ID": "EMP_003", "Name": "Prakash Naik", "Biometric Status": "Verified ✅", "Salary Credited": "₹42,000", "AI Status": "Normal ✅"},
+    # Initial employee table data
+    initial_data = pd.DataFrame([
+        {"Employee ID": "EMP_001", "Name": "Ramesh Mohanty", "Biometric Status": "Verified ✅", "Salary (INR)": 45000},
+        {"Employee ID": "EMP_002", "Name": "Sita Das", "Biometric Status": "Verified ✅", "Salary (INR)": 50000},
+        {"Employee ID": "EMP_003", "Name": "Prakash Naik", "Biometric Status": "Verified ✅", "Salary (INR)": 42000},
+        {"Employee ID": "EMP_004", "Name": "Ananya Patnaik", "Biometric Status": "Verified ✅", "Salary (INR)": 48000},
+        {"Employee ID": "EMP_005", "Name": "Soumya Ranjan", "Biometric Status": "Verified ✅", "Salary (INR)": 46000},
+        {"Employee ID": "EMP_006", "Name": "Priya Mishra", "Biometric Status": "Verified ✅", "Salary (INR)": 51000},
+        {"Employee ID": "EMP_007", "Name": "Manas Swain", "Biometric Status": "Verified ✅", "Salary (INR)": 44000},
+    ])
+
+    # Make the whole table interactive/editable
+    edited_df = st.data_editor(
+        initial_data,
+        column_config={
+            "Biometric Status": st.column_config.SelectboxColumn(
+                "Biometric Status",
+                options=["Verified ✅", "Unverified ❌"],
+                required=True
+            ),
+            "Salary (INR)": st.column_config.NumberColumn(
+                "Salary (INR)",
+                min_value=10000,
+                max_value=500000,
+                step=5000,
+                format="₹%d"
+            )
+        },
+        use_container_width=True,
+        num_rows="dynamic"  # Allows you to add/delete rows live if needed!
+    )
+
+    # Real-Time Anomaly Detection Engine across ALL employees
+    flagged_employees = edited_df[
+        (edited_df["Salary (INR)"] > 70000) | (edited_df["Biometric Status"] == "Unverified ❌")
     ]
 
-    is_anomaly = (salary_input > 70000) or (bio_status == "Unverified ❌")
-    status_tag = "FLAGGED ⚠️" if is_anomaly else "Normal ✅"
-
-    data.append({
-        "Employee ID": "EMP_004 (Live Test)",
-        "Name": "Test Employee Record",
-        "Biometric Status": bio_status,
-        "Salary Credited": f"₹{salary_input:,}",
-        "AI Status": status_tag
-    })
-
-    st.dataframe(pd.DataFrame(data), use_container_width=True)
-
-    # 3. Automatic Alert Logic
-    if is_anomaly:
-        st.error("🚨 **AUTOMATED INQUIRY ALERT DETECTED IN REAL-TIME!**")
-        st.warning(f"Digital Case File #104: Salary ₹{salary_input:,} with status '{bio_status}' flagged as suspicious anomaly.")
+    if not flagged_employees.empty:
+        st.error(f"🚨 **AUTOMATED VIGILANCE ALERT DETECTED ({len(flagged_employees)} Anomaly Found)!**")
         
-        # Check session_state so the SMS sends automatically ONCE per anomaly
-        alert_identifier = f"{salary_input}_{bio_status}"
-        if 'sent_alert' not in st.session_state or st.session_state.sent_alert != alert_identifier:
-            sms_body = f"CRITICAL: AIVG Corruption Alert. Record EMP_004 flagged with salary INR {salary_input} and Biometric status {bio_status}. Immediate verification needed."
-            
-            success, msg = trigger_auto_sms(authority_phone, sms_body)
-            st.session_state.sent_alert = alert_identifier
-            
-            if success:
-                st.success(f"📲 **AUTOMATIC DISPATCH SUCCESS:** Real SMS alert delivered to Authority: {authority_phone}!")
-            else:
-                st.info(f"⚡ **AUTOMATED SYSTEM TRIGGERED:** System generated automated dispatch payload for Authority: **{authority_phone}**.")
+        # Display each flagged record details
+        for _, row in flagged_employees.iterrows():
+            st.warning(f"⚠️ **Flagged Record:** {row['Employee ID']} ({row['Name']}) | Salary: ₹{row['Salary (INR)']:,} | Status: {row['Biometric Status']}")
+        
+        # WhatsApp Pre-filled Alert Message
+        summary_text = "\n".join([f"- {r['Employee ID']} ({r['Name']}): ₹{r['Salary (INR)']} [{r['Biometric Status']}]" for _, r in flagged_employees.iterrows()])
+        wa_text = f"🚨 *AIVG EMERGENCY VIGILANCE ALERT*\n\nAnomalies detected in Payroll Feed:\n{summary_text}\n\n*Action Required:* Immediate audit review."
+        encoded_text = urllib.parse.quote(wa_text)
+        wa_url = f"https://wa.me/{officer_phone}?text={encoded_text}"
+        
+        st.markdown("---")
+        st.link_button("🚨 Dispatch Real-Time WhatsApp Alert to Officer", wa_url)
     else:
-        st.session_state.sent_alert = None
-        st.success("🟢 **SYSTEM NORMAL:** No anomalies detected. Transaction marked safe.")
+        st.success("🟢 **SYSTEM NORMAL:** All payroll amounts and biometrics are verified within safe limits.")
 
 elif menu == "Tender Overpricing Audit":
     st.header("📊 Real-Time Procurement Audit Module")
+    st.info("💡 **Interactive Demo:** Click inside any tender row to edit estimated budgets or winning bids!")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        est_budget = st.number_input("Estimated Budget (Lakhs INR):", min_value=10, max_value=500, value=50, step=10)
-    with col2:
-        winning_bid = st.number_input("Winning Bid Amount (Lakhs INR):", min_value=10, max_value=1000, value=120, step=10)
+    initial_tenders = pd.DataFrame([
+        {"Tender ID": "TEN_101", "Department": "Roads & Building", "Budget (Lakhs)": 50, "Winning Bid (Lakhs)": 52},
+        {"Tender ID": "TEN_102", "Department": "Water Resources", "Budget (Lakhs)": 60, "Winning Bid (Lakhs)": 64},
+        {"Tender ID": "TEN_103", "Department": "Rural Development", "Budget (Lakhs)": 40, "Winning Bid (Lakhs)": 41},
+        {"Tender ID": "TEN_104", "Department": "Health Infrastructure", "Budget (Lakhs)": 100, "Winning Bid (Lakhs)": 105},
+    ])
 
-    price_increase = ((winning_bid - est_budget) / est_budget) * 100
-    is_tender_flagged = price_increase > 40 
+    edited_tenders = st.data_editor(
+        initial_tenders,
+        column_config={
+            "Budget (Lakhs)": st.column_config.NumberColumn(format="₹%d Lakhs"),
+            "Winning Bid (Lakhs)": st.column_config.NumberColumn(format="₹%d Lakhs"),
+        },
+        use_container_width=True,
+        num_rows="dynamic"
+    )
 
-    tenders = [
-        {"Tender ID": "TEN_101", "Department": "Roads & Building", "Estimated Budget": "₹50 Lakhs", "Winning Bid": "₹52 Lakhs", "AI Status": "Normal ✅"},
-        {"Tender ID": "TEN_102 (Live Test)", "Department": "Water Resources", "Estimated Budget": f"₹{est_budget} Lakhs", "Winning Bid": f"₹{winning_bid} Lakhs", "AI Status": "FLAGGED 🚨" if is_tender_flagged else "Normal ✅"}
-    ]
+    # Calculate percentage deviation for all tenders
+    edited_tenders["Increase %"] = ((edited_tenders["Winning Bid (Lakhs)"] - edited_tenders["Budget (Lakhs)"]) / edited_tenders["Budget (Lakhs)"]) * 100
+    flagged_tenders = edited_tenders[edited_tenders["Increase %"] > 40]
 
-    st.dataframe(pd.DataFrame(tenders), use_container_width=True)
-
-    if is_tender_flagged:
-        st.error(f"🚨 **REAL-TIME ALERT: SUSPICIOUS TENDER INFLATION (+{price_increase:.1f}%)**")
+    if not flagged_tenders.empty:
+        st.error(f"🚨 **PROCUREMENT BREACH ALERT ({len(flagged_tenders)} Tender Flagged)!**")
         
-        tender_identifier = f"{est_budget}_{winning_bid}"
-        if 'sent_tender_alert' not in st.session_state or st.session_state.sent_tender_alert != tender_identifier:
-            sms_body = f"CRITICAL: AIVG Procurement Alert. Tender TEN_102 exceeds budget by {price_increase:.1f} percent. Authority verification required."
-            
-            success, msg = trigger_auto_sms(authority_phone, sms_body)
-            st.session_state.sent_tender_alert = tender_identifier
-            
-            if success:
-                st.success(f"📲 **AUTOMATIC DISPATCH SUCCESS:** Real SMS alert delivered to Authority: {authority_phone}!")
-            else:
-                st.info(f"⚡ **AUTOMATED SYSTEM TRIGGERED:** System generated automated dispatch payload for Authority: **{authority_phone}**.")
+        for _, row in flagged_tenders.iterrows():
+            st.warning(f"🚨 **Tender ID:** {row['Tender ID']} ({row['Department']}) | Budget: ₹{row['Budget (Lakhs)']}L | Bid: ₹{row['Winning Bid (Lakhs)']}L (+{row['Increase %']:.1f}% inflation)")
+
+        wa_text = f"🚨 *AIVG PROCUREMENT BREACH ALERT*\n\nSuspicious tender inflation detected. Forwarded to Vigilance Department."
+        encoded_text = urllib.parse.quote(wa_text)
+        wa_url = f"https://wa.me/{officer_phone}?text={encoded_text}"
+        
+        st.markdown("---")
+        st.link_button("🚨 Dispatch Real-Time WhatsApp Alert to Officer", wa_url)
     else:
-        st.session_state.sent_tender_alert = None
-        st.success(f"🟢 **TENDER APPROVED:** Bid is within safe budget limits (+{price_increase:.1f}% deviation).")
+        st.success("🟢 **TENDERS APPROVED:** All winning bids are within safe threshold limits (<40% deviation).")
+        
         
     
   

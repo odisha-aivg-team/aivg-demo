@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# Set page layout to wide so tables don't get cut off on mobile devices
 st.set_page_config(page_title="AI Vigilance Grid (AIVG)", page_icon="🛡️", layout="wide")
 
 st.title("🛡️ AI Vigilance Grid (AIVG)")
@@ -18,8 +17,9 @@ menu = st.sidebar.selectbox("Select System Data Feed", ["Payroll & Salary Logs",
 
 if menu == "Payroll & Salary Logs":
     st.header("📊 Real-Time Multi-Employee Audit Module")
-    st.info("💡 **Interactive Demo:** Click inside any row below to edit salary amounts or biometric verification status!")
+    st.info("💡 **Interactive Demo:** Edit any employee's salary or biometric status directly in the table to see the AI Status update instantly!")
 
+    # Initial employee table data
     initial_data = pd.DataFrame([
         {"Employee ID": "EMP_001", "Name": "Ramesh Mohanty", "Biometric Status": "Verified ✅", "Salary (INR)": 45000},
         {"Employee ID": "EMP_002", "Name": "Sita Das", "Biometric Status": "Verified ✅", "Salary (INR)": 50000},
@@ -30,7 +30,7 @@ if menu == "Payroll & Salary Logs":
         {"Employee ID": "EMP_007", "Name": "Manas Swain", "Biometric Status": "Verified ✅", "Salary (INR)": 44000},
     ])
 
-    # Table configuration optimized for full visibility
+    # 1. Interactive input table for edits
     edited_df = st.data_editor(
         initial_data,
         column_config={
@@ -55,10 +55,28 @@ if menu == "Payroll & Salary Logs":
         num_rows="dynamic"
     )
 
-    # Anomaly Check
-    flagged_employees = edited_df[
-        (edited_df["Salary (INR)"] > 70000) | (edited_df["Biometric Status"] == "Unverified ❌")
-    ]
+    # 2. Compute dynamic AI Status column in real time
+    def calculate_status(row):
+        if row["Salary (INR)"] > 80000 or row["Biometric Status"] == "Unverified ❌":
+            return "FLAGGED 🚨"
+        return "Normal ✅"
+
+    display_df = edited_df.copy()
+    display_df["AI Status"] = display_df.apply(calculate_status, axis=1)
+
+    # 3. Show live table with the AI Status column included
+    st.subheader("📋 Live Audit Output")
+    st.dataframe(
+        display_df,
+        column_config={
+            "AI Status": st.column_config.TextColumn("AI Status", width="medium")
+        },
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # 4. Trigger alert banners and WhatsApp buttons if any record is flagged
+    flagged_employees = display_df[display_df["AI Status"] == "FLAGGED 🚨"]
 
     if not flagged_employees.empty:
         st.error(f"🚨 **AUTOMATED VIGILANCE ALERT DETECTED ({len(flagged_employees)} Anomaly Found)!**")
@@ -100,7 +118,12 @@ elif menu == "Tender Overpricing Audit":
     )
 
     edited_tenders["Increase %"] = ((edited_tenders["Winning Bid (Lakhs)"] - edited_tenders["Budget (Lakhs)"]) / edited_tenders["Budget (Lakhs)"]) * 100
-    flagged_tenders = edited_tenders[edited_tenders["Increase %"] > 40]
+    edited_tenders["AI Status"] = edited_tenders["Increase %"].apply(lambda x: "FLAGGED 🚨" if x > 40 else "Normal ✅")
+
+    st.subheader("📋 Live Audit Output")
+    st.dataframe(edited_tenders, use_container_width=True, hide_index=True)
+
+    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "FLAGGED 🚨"]
 
     if not flagged_tenders.empty:
         st.error(f"🚨 **PROCUREMENT BREACH ALERT ({len(flagged_tenders)} Tender Flagged)!**")
@@ -116,6 +139,7 @@ elif menu == "Tender Overpricing Audit":
         st.link_button("🚨 Dispatch Real-Time WhatsApp Alert to Officer", wa_url)
     else:
         st.success("🟢 **TENDERS APPROVED:** All winning bids are within safe threshold limits (<40% deviation).")
+    
         
         
         

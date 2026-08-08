@@ -8,12 +8,13 @@ st.caption("Odiaprenuer 3.0 Smart Odisha Hackathon | Cyber Security from Corrupt
 
 st.markdown("---")
 
+# Sidebar navigation
 menu = st.sidebar.selectbox("Select System Data Feed", ["Payroll & Salary Logs", "Tenders & Procurement"])
 
 if menu == "Payroll & Salary Logs":
     st.header("📊 Module 1: Payroll & Beneficiary Audit")
     
-    data = pd.DataFrame({
+    payroll_data = pd.DataFrame({
         'Employee ID': ['EMP_001', 'EMP_002', 'EMP_003', 'EMP_004 (Ghost Alert)'],
         'Name': ['Ramesh Mohanty', 'Sita Das', 'Prakash Naik', 'Unknown / Unverified'],
         'Biometric Status': ['Verified ✅', 'Verified ✅', 'Verified ✅', 'Unverified ❌'],
@@ -21,7 +22,7 @@ if menu == "Payroll & Salary Logs":
         'AI Status': ['Normal', 'Normal', 'Normal', 'FLAGGED ⚠️']
     })
     
-    st.dataframe(data, use_container_width=True)
+    st.dataframe(payroll_data)
     
     st.error("⚠️ **AUTOMATED INQUIRY ALERT DETECTED**")
     st.warning("Digital Case File #104: High salary credited to unverified biometric record (EMP_004). Flagged for human officer review.")
@@ -29,7 +30,7 @@ if menu == "Payroll & Salary Logs":
 elif menu == "Tenders & Procurement":
     st.header("📊 Module 2: Tender Overpricing Audit")
     
-    tenders = pd.DataFrame({
+    tenders_data = pd.DataFrame({
         'Tender ID': ['TEN_101', 'TEN_102', 'TEN_103'],
         'Department': ['Roads & Building', 'Water Resources', 'Education'],
         'Estimated Budget': ['₹50 Lakhs', '₹1.2 Crore', '₹30 Lakhs'],
@@ -37,7 +38,8 @@ elif menu == "Tenders & Procurement":
         'Approval Days': [15, 1, 20]
     })
     
-    st.dataframe(tenders, use_container_width=True)
+    st.dataframe(tenders_data)
     st.error("⚠️ **AI ANOMALY DETECTED IN TEN_102**")
     st.info("Winning bid exceeds estimated budget by 158% with suspiciously rapid 1-day approval. Sent to Vigilance Department.")
+    
   

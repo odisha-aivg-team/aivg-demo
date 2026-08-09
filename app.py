@@ -2,37 +2,29 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# 1. Page Configuration
+# Page Configuration
 st.set_page_config(
     page_title="AIVG - AI Vigilance Grid", 
     page_icon="🛡️", 
     layout="wide"
 )
 
-# 2. Header & Branding
+# Header & Branding
 st.title("🛡️ AI Vigilance Grid (AIVG)")
 st.caption("Odiaprenuer 3.0 | Odisha Adarsha Vidyalaya, Lingipur, Gosani, Gajapati | Smart Odisha Hackathon")
 st.markdown("**Theme:** Cyber Security from Corruption — *An AI-Based Automatic Corruption Inquiry System*")
 
 st.markdown("---")
 
-# 3. Sidebar Navigation Menu
-st.sidebar.header("📱 Vigilance Officer Settings")
+# Sidebar Configuration
+st.sidebar.header("📱 Vigilance Officer Contact")
 officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919876543210")
 
-menu = st.sidebar.selectbox("Select System Data Box / Module", [
-    "Box 1: Site Work Progress Tracker",
-    "Box 2: Base Payroll Audit Table",
-    "Box 3: Post-Salary Extra Disbursement Inspector",
-    "Box 4: Government Welfare & Multiple Benefits Audit",
-    "Box 5: Procurement & Tender Audit"
-])
-
-# ---------------------------------------------------------
+# =========================================================
 # BOX 1: SITE WORK PROGRESS TRACKER
-# ---------------------------------------------------------
-if menu == "Box 1: Site Work Progress Tracker":
-    st.header("🏗️ Box 1: Site Work & Physical Progress Audit")
+# =========================================================
+with st.container(border=True):
+    st.header("🏗️ Box 1: Site Work Progress Tracker")
     st.info("💡 **Site Work Inspection:** Verifies physical progress completed on site against registered attendance days.")
 
     site_data = pd.DataFrame([
@@ -53,7 +45,8 @@ if menu == "Box 1: Site Work Progress Tracker":
             "Site Engineer Verification": st.column_config.SelectboxColumn("Verification Status", options=["Verified ✅", "Unverified ❌"], width="medium")
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        key="editor_site"
     )
 
     display_site = edited_site.copy()
@@ -62,27 +55,22 @@ if menu == "Box 1: Site Work Progress Tracker":
         axis=1
     )
 
-    st.subheader("📋 Dynamic Site Audit Sheet")
     st.dataframe(display_site, use_container_width=True, hide_index=True)
 
     flagged_site = display_site[display_site["AI Progress Status"].str.contains("🚨")]
     if not flagged_site.empty:
         st.error(f"🚨 **SITE PROGRESS DISCREPANCY DETECTED ({len(flagged_site)} Anomaly Flagged)!**")
-        for _, r in flagged_site.iterrows():
-            st.warning(f"⚠️ **Site Anomaly:** {r['Worker ID']} ({r['Name']}) reported {r['Days Reported']} days but physical progress is only **{r['Physical Progress (%)']}%**.")
-
         summary_text = "\n".join([f"- {r['Worker ID']} ({r['Name']}): {r['Days Reported']} Days | Work: {r['Physical Progress (%)']}% | Status: {r['Site Engineer Verification']}" for _, r in flagged_site.iterrows()])
-        wa_text = f"🚨 *AIVG SITE PROGRESS BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Site Progress Tracker\n\n*Flagged Records:*\n{summary_text}\n\n*Action Required:* Immediate site physical inspection."
+        wa_text = f"🚨 *AIVG SITE PROGRESS BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Site Progress Tracker\n\n*Flagged Records:*\n{summary_text}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.markdown("---")
-        st.link_button("🚨 Dispatch Site Anomaly Case File via WhatsApp", wa_url)
+        st.link_button("🚨 Dispatch Site Anomaly Alert via WhatsApp", wa_url)
     else:
-        st.success("🟢 **SYSTEM NORMAL:** All site work progress matches attendance records.")
+        st.success("🟢 **BOX 1 NORMAL:** All site work progress matches attendance records.")
 
-# ---------------------------------------------------------
+# =========================================================
 # BOX 2: BASE PAYROLL AUDIT TABLE
-# ---------------------------------------------------------
-elif menu == "Box 2: Base Payroll Audit Table":
+# =========================================================
+with st.container(border=True):
     st.header("📊 Box 2: Base Payroll Audit Table")
     st.info("💡 **Payroll Inspector:** Calculates base salary automatically (`Daily Rate × Days Worked`) and flags salary over-allocations.")
 
@@ -106,7 +94,8 @@ elif menu == "Box 2: Base Payroll Audit Table":
             "Days Worked": st.column_config.NumberColumn("Days Worked", min_value=0, max_value=31, step=1, width="small")
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        key="editor_payroll"
     )
 
     display_payroll = edited_payroll.copy()
@@ -116,7 +105,6 @@ elif menu == "Box 2: Base Payroll Audit Table":
         axis=1
     )
 
-    st.subheader("📋 Base Payroll Calculation Sheet")
     st.dataframe(
         display_payroll,
         column_config={"Calculated Base Pay (₹)": st.column_config.NumberColumn("Calculated Base Pay (₹)", format="₹%d")},
@@ -127,21 +115,17 @@ elif menu == "Box 2: Base Payroll Audit Table":
     flagged_payroll = display_payroll[display_payroll["AI Status"] == "PAYROLL ALERT 🚨"]
     if not flagged_payroll.empty:
         st.error(f"🚨 **PAYROLL ANOMALY DETECTED ({len(flagged_payroll)} Flagged)!**")
-        for _, r in flagged_payroll.iterrows():
-            st.warning(f"⚠️ **Payroll Case File:** {r['Employee ID']} ({r['Name']}) | Calculated Pay: ₹{r['Calculated Base Pay (₹)']:,} | Biometric: {r['Biometric Status']}")
-
         summary_text = "\n".join([f"- {r['Employee ID']} ({r['Name']}): ₹{r['Calculated Base Pay (₹)']} Pay | Bio: {r['Biometric Status']}" for _, r in flagged_payroll.iterrows()])
-        wa_text = f"🚨 *AIVG BASE PAYROLL BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Flagged Records:*\n{summary_text}\n\n*Action Required:* Audit verification requested."
+        wa_text = f"🚨 *AIVG BASE PAYROLL BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Flagged Records:*\n{summary_text}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.markdown("---")
         st.link_button("🚨 Dispatch Base Payroll Case File via WhatsApp", wa_url)
     else:
-        st.success("🟢 **SYSTEM NORMAL:** Base payroll calculations verified clean.")
+        st.success("🟢 **BOX 2 NORMAL:** Base payroll calculations verified clean.")
 
-# ---------------------------------------------------------
+# =========================================================
 # BOX 3: POST-SALARY EXTRA DISBURSEMENT INSPECTOR
-# ---------------------------------------------------------
-elif menu == "Box 3: Post-Salary Extra Disbursement Inspector":
+# =========================================================
+with st.container(border=True):
     st.header("🔍 Box 3: Post-Salary Extra Disbursement Inspector")
     st.info("💡 **Leakage Detector:** Audits if any person receives extra funds/kickbacks after their official base salary has been credited.")
 
@@ -163,7 +147,8 @@ elif menu == "Box 3: Post-Salary Extra Disbursement Inspector":
             "Disbursal Channel": st.column_config.SelectboxColumn("Disbursal Channel", options=["Treasury Direct", "Vendor Account", "Third-Party Transfer", "Unlinked Disbursal"], width="medium")
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        key="editor_extra"
     )
 
     display_extra = edited_extra.copy()
@@ -172,29 +157,24 @@ elif menu == "Box 3: Post-Salary Extra Disbursement Inspector":
         lambda extra: "EXTRA MONEY ALERT 🚨" if extra > 0 else "Normal ✅"
     )
 
-    st.subheader("📋 Post-Salary Money Leakage Audit Sheet")
     st.dataframe(display_extra, use_container_width=True, hide_index=True)
 
     flagged_extra = display_extra[display_extra["AI Detection Status"] == "EXTRA MONEY ALERT 🚨"]
     if not flagged_extra.empty:
         st.error(f"🚨 **UNAUTHORIZED EXTRA MONEY DETECTED ({len(flagged_extra)} Violation Flagged)!**")
-        for _, r in flagged_extra.iterrows():
-            st.warning(f"🚨 **LEAKAGE ALERT:** {r['Employee ID']} ({r['Name']}) received extra payment of **₹{r['Post-Salary Extra Funds (₹)']:,}** via *{r['Disbursal Channel']}*! (Total payout: ₹{r['Total Disbursed (₹)']:,})")
-
         extra_summary = "\n".join([f"- {r['Employee ID']} ({r['Name']}): Base ₹{r['Approved Base Salary (₹)']} + Extra ₹{r['Post-Salary Extra Funds (₹)']} via {r['Disbursal Channel']}" for _, r in flagged_extra.iterrows()])
-        wa_text = f"🚨 *AIVG EXTRA MONEY BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Post-Salary Leakage Inspector\n\n*Unauthorized Payments Detected:*\n{extra_summary}\n\n*Action Required:* Immediate inquiry into extra money transfer."
+        wa_text = f"🚨 *AIVG EXTRA MONEY BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Post-Salary Leakage Inspector\n\n*Unauthorized Payments Detected:*\n{extra_summary}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.markdown("---")
         st.link_button("🚨 Dispatch Extra Money Breach Alert via WhatsApp", wa_url)
     else:
-        st.success("🟢 **NO LEAKAGE DETECTED:** No post-salary unauthorized extra payments detected.")
+        st.success("🟢 **BOX 3 NORMAL:** No post-salary unauthorized extra payments detected.")
 
-# ---------------------------------------------------------
+# =========================================================
 # BOX 4: GOVERNMENT WELFARE & MULTIPLE BENEFITS AUDIT
-# ---------------------------------------------------------
-elif menu == "Box 4: Government Welfare & Multiple Benefits Audit":
+# =========================================================
+with st.container(border=True):
     st.header("🎁 Box 4: Government Welfare & Multiple Benefit Detector")
-    st.info("💡 **Benefit Fraud Detector:** Flags any beneficiary receiving **more than 2 government scheme benefits** or duplicate beneficiary accounts.")
+    st.info("💡 **Benefit Fraud Detector:** Flags any beneficiary receiving **more than 2 government scheme benefits**.")
 
     welfare_data = pd.DataFrame([
         {"Beneficiary Aadhaar ID": "AADHAAR_9001", "Citizen Name": "Ramesh Mohanty", "Scheme 1": "Kalia Yojana ✅", "Scheme 2": "Madhu Babu Pension ✅", "Scheme 3": "None", "Total Active Benefits": 2},
@@ -212,7 +192,8 @@ elif menu == "Box 4: Government Welfare & Multiple Benefits Audit":
             "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", min_value=0, max_value=10, step=1, width="small")
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        key="editor_welfare"
     )
 
     display_welfare = edited_welfare.copy()
@@ -220,27 +201,22 @@ elif menu == "Box 4: Government Welfare & Multiple Benefits Audit":
         lambda benefits: "MULTIPLE SCHEME FRAUD ALERT 🚨 (>2 Benefits)" if benefits > 2 else "Approved ✅"
     )
 
-    st.subheader("📋 Beneficiary Schemes Cross-Verification Sheet")
     st.dataframe(display_welfare, use_container_width=True, hide_index=True)
 
     flagged_welfare = display_welfare[display_welfare["AI Welfare Status"].str.contains("🚨")]
     if not flagged_welfare.empty:
         st.error(f"🚨 **MULTIPLE BENEFIT FRAUD DETECTED ({len(flagged_welfare)} Beneficiary Flagged)!**")
-        for _, r in flagged_welfare.iterrows():
-            st.warning(f"🚨 **DUPLICATE BENEFICIARY ALERT:** {r['Beneficiary Aadhaar ID']} ({r['Citizen Name']}) is enrolled in **{r['Total Active Benefits']} active schemes** (Exceeds maximum policy cap of 2 benefits).")
-
         welfare_summary = "\n".join([f"- {r['Beneficiary Aadhaar ID']} ({r['Citizen Name']}): Enrolled in {r['Total Active Benefits']} Government Schemes" for _, r in flagged_welfare.iterrows()])
-        wa_text = f"🚨 *AIVG MULTIPLE SCHEME BENEFIT FRAUD ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Welfare Scheme Audit\n\n*Violations Detected:*\n{welfare_summary}\n\n*Action Required:* Cancel duplicate benefit payouts immediately."
+        wa_text = f"🚨 *AIVG MULTIPLE SCHEME BENEFIT FRAUD ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Violations Detected:*\n{welfare_summary}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.markdown("---")
         st.link_button("🚨 Dispatch Benefit Fraud Case File via WhatsApp", wa_url)
     else:
-        st.success("🟢 **NO FRAUD DETECTED:** All citizens are within the allowed limit of government benefits.")
+        st.success("🟢 **BOX 4 NORMAL:** All citizens are within the allowed limit of government benefits.")
 
-# ---------------------------------------------------------
+# =========================================================
 # BOX 5: PROCUREMENT & TENDER AUDIT
-# ---------------------------------------------------------
-elif menu == "Box 5: Procurement & Tender Audit":
+# =========================================================
+with st.container(border=True):
     st.header("📊 Box 5: Real-Time Procurement & Tender Audit Module")
     st.info("💡 **Tender Audit:** Detects overpricing and inflated bids exceeding 40% of the estimated budget.")
 
@@ -260,28 +236,25 @@ elif menu == "Box 5: Procurement & Tender Audit":
             "Winning Bid (Lakhs INR)": st.column_config.NumberColumn("Winning Bid (Lakhs)", format="₹%d L", width="small"),
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        key="editor_tenders"
     )
 
     edited_tenders["Inflation (%)"] = ((edited_tenders["Winning Bid (Lakhs INR)"] - edited_tenders["Budget (Lakhs INR)"]) / edited_tenders["Budget (Lakhs INR)"]) * 100
     edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "TENDER FLAGGED 🚨" if x > 40 else "Normal ✅")
 
-    st.subheader("📋 Dynamic Procurement Audit Sheet")
     st.dataframe(edited_tenders, use_container_width=True, hide_index=True)
 
     flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "TENDER FLAGGED 🚨"]
     if not flagged_tenders.empty:
         st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
-        for _, r in flagged_tenders.iterrows():
-            st.warning(f"🚨 **Tender Case File:** {r['Tender ID']} ({r['Department']}) | Budget: ₹{r['Budget (Lakhs INR)']}L | Bid: ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}% deviation)")
-
         tender_summary = "\n".join([f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" for _, r in flagged_tenders.iterrows()])
-        wa_text = f"🚨 *AIVG TENDER BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Tender Audit\n\n*Flagged Tenders:*\n{tender_summary}\n\n*Action Required:* Forwarded to Vigilance Department for verification."
+        wa_text = f"🚨 *AIVG TENDER BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Flagged Tenders:*\n{tender_summary}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.markdown("---")
         st.link_button("🚨 Dispatch Tender Case File via WhatsApp", wa_url)
     else:
-        st.success("🟢 **TENDERS APPROVED:** All submitted bids are within safe budget variance limits (<40% deviation).")
+        st.success("🟢 **BOX 5 NORMAL:** All submitted bids are within safe budget variance limits (<40% deviation).")
+        
     
     
     

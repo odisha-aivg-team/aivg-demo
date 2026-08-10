@@ -1,77 +1,4 @@
-import streamlit as st
-import pandas as pd
-import datetime
-
-# ---------------------------------------------------------
-# PAGE CONFIGURATION & HEADER
-# ---------------------------------------------------------
-st.set_page_config(
-    page_title="AI Vigilance Grid (AIVG)",
-    page_icon="🛡️",
-    layout="wide"
-)
-
-st.title("🛡️ AI Vigilance Grid (AIVG)")
-st.caption("AI-Powered Automatic Corruption Inquiry System | Odisha Adarsha Vidyalaya")
-st.markdown("---")
-
-# =========================================================
-# BOX 1: SITE WORK PROGRESS & ATTENDANCE TRACKER
-# =========================================================
-st.header("📦 Box 1: Site Work Progress & Attendance Tracker")
-
-col1_main, col1_side = st.columns([3, 1])
-
-with col1_main:
-    data_box1 = {
-        "Worker ID": ["WRK_101", "WRK_102", "WRK_103", "WRK_104"],
-        "Worker Name": ["Ramesh Mohanty", "Suresh Panda", "Anil Swain", "Bikash Sahoo"],
-        "Attendance Days": [25, 24, 22, 10],
-        "Physical Progress (%)": [30, 85, 90, 45],
-        "Disbursement (₹)": [18000, 17200, 16000, 7500]
-    }
-    df1 = pd.DataFrame(data_box1)
-    st.dataframe(df1, use_container_width=True)
-
-with col1_side:
-    st.subheader("🚨 Vigilance Alert")
-    for idx, row in df1.iterrows():
-        attendance_days = row["Attendance Days"]
-        physical_progress = row["Physical Progress (%)"]
-        
-        # Line 54: Clean conditional check without wrapping quotes
-        if physical_progress < 50 and attendance_days > 20:
-            st.error("🚨 BIOMETRIC vs. WORK PROGRESS ANOMALY DETECTED")
-            st.warning(f"Flagged {row['Worker ID']} ({row['Worker Name']}): High attendance ({attendance_days} days) but site progress is under {physical_progress}%.")
-
-st.markdown("---")
-
-# =========================================================
-# BOX 2: PAYROLL & GHOST EMPLOYEE DETECTION
-# =========================================================
-st.header("📦 Box 2: Payroll & Ghost Employee Detection")
-
-col2_main, col2_side = st.columns([3, 1])
-
-with col2_main:
-    data_box2 = {
-        "Employee ID": ["EMP_201", "EMP_202", "EMP_203", "EMP_204"],
-        "Name": ["Prakash Rout", "Kavita Das", "Manoj Tripathy", "Sunil Jena"],
-        "Aadhaar Status": ["Verified", "Verified", "Unlinked / Duplicate", "Verified"],
-        "Bank Account": ["SBIN0001", "SBIN0002", "SBIN0001 (Duplicate)", "SBIN0004"],
-        "Monthly Salary (₹)": [45000, 48000, 45000, 42000]
-    }
-    df2 = pd.DataFrame(data_box2)
-    st.dataframe(df2, use_container_width=True)
-
-with col2_side:
-    st.subheader("🚨 Payroll Alert")
-    ghost_records = df2[df2["Aadhaar Status"].str.contains("Duplicate")]
-    if not ghost_records.empty:
-        st.error("🚨 DUPLICATE BANK ACCOUNT / UNLINKED AADHAAR DETECTED")
-        st.warning("Potential ghost employee flagged in payroll processing.")
-
-st.markdown("---")
+import urllib.parse  # Make sure this is imported at the top of your app.py
 
 # =========================================================
 # BOX 3: EXTRA DISBURSEMENTS & FUNDS MONITORING
@@ -97,6 +24,11 @@ with col3_side:
         if row["Disbursed Amount (₹)"] > row["Approved Amount (₹)"]:
             st.error("🚨 UNAUTHORIZED BUDGET OVERRUN DETECTED")
             st.warning(f"Transaction {row['Transaction ID']} exceeds approved sanction by ₹{row['Disbursed Amount (₹)'] - row['Approved Amount (₹)']}.")
+            
+            # WhatsApp Dispatch Setup
+            msg3 = f"🚨 *AIVG ALERT: EXTRA DISBURSEMENT OVERRUN*\nTransaction: {row['Transaction ID']}\nApproved: ₹{row['Approved Amount (₹)']}\nDisbursed: ₹{row['Disbursed Amount (₹)']}\nImmediate Action Required."
+            url3 = f"https://api.whatsapp.com/send?phone=919000000000&text={urllib.parse.quote(msg3)}"
+            st.link_button("📲 Send WhatsApp Alert", url3, key=f"wa_3_{idx}")
 
 st.markdown("---")
 
@@ -118,11 +50,16 @@ with col4_main:
     st.dataframe(df4, use_container_width=True)
 
 with col4_side:
-    st.subheader("🚨 Scheme Audit")
+    st.subheader("🚨 Scheme Audit Alert")
     low_dbt = df4[df4["DBT Success Rate (%)"] < 80]
     if not low_dbt.empty:
         st.error("🚨 HIGH BENEFICIARY MISMATCH RISK")
         st.warning("Housing Grant B shows abnormal drop in successful direct transfers.")
+        
+        # WhatsApp Dispatch Setup
+        msg4 = "🚨 *AIVG ALERT: SCHEME BENEFICIARY ANOMALY*\nHousing Grant B DBT Success Rate dropped below safe threshold (62.0%). Please inspect portal logs."
+        url4 = f"https://api.whatsapp.com/send?phone=919000000000&text={urllib.parse.quote(msg4)}"
+        st.link_button("📲 Send WhatsApp Alert", url4, key="wa_4")
 
 st.markdown("---")
 
@@ -150,6 +87,12 @@ with col5_side:
     if not collusion.empty:
         st.error("🚨 BIDDER COLLUSION DETECTED")
         st.warning("Multiple bid submissions received from identical IP addresses.")
+        
+        # WhatsApp Dispatch Setup
+        msg5 = "🚨 *AIVG ALERT: TENDER COLLUSION RISK*\nTender TND_502 flagged for identical bidder IP submission addresses. Potential cartel activity."
+        url5 = f"https://api.whatsapp.com/send?phone=919000000000&text={urllib.parse.quote(msg5)}"
+        st.link_button("📲 Send WhatsApp Alert", url5, key="wa_5")
+        
         
     
             

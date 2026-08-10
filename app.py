@@ -19,6 +19,7 @@ st.markdown("---")
 # 3. Sidebar Configuration
 st.sidebar.header("📱 Vigilance Officer Contact")
 officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919876543210")
+
 # =========================================================
 # BOX 1: SITE WORK PROGRESS TRACKER
 # =========================================================
@@ -37,10 +38,10 @@ with st.container(border=True):
     edited_site = st.data_editor(
         site_data,
         column_config={
-            "Worker ID": st.column_config.TextColumn("Worker ID", width="small"),
+            "Worker ID": st.column_config.TextColumn("Worker ID", width="medium"),
             "Name": st.column_config.TextColumn("Worker Name", width="medium"),
-            "Days Reported": st.column_config.NumberColumn("Days Reported", min_value=0, max_value=31, step=1, width="small"),
-            "Physical Progress (%)": st.column_config.NumberColumn("Physical Progress (%)", min_value=0, max_value=100, step=5, format="%d%%", width="small"),
+            "Days Reported": st.column_config.NumberColumn("Days Reported", min_value=0, max_value=31, step=1, width="medium"),
+            "Physical Progress (%)": st.column_config.NumberColumn("Physical Progress (%)", min_value=0, max_value=100, step=5, format="%d%%", width="medium"),
             "Site Engineer Verification": st.column_config.SelectboxColumn("Verification Status", options=["Verified ✅", "Unverified ❌"], width="medium")
         },
         use_container_width=True,
@@ -50,7 +51,7 @@ with st.container(border=True):
 
     display_site = edited_site.copy()
 
-    # Compact & Shortened Alert Status Logic
+    # Compact Alert Status Logic
     def evaluate_site_status(row):
         if row["Site Engineer Verification"] == "Unverified ❌" or row["Days Reported"] < 10:
             return "🚨 LOW ATTENDANCE"
@@ -61,17 +62,18 @@ with st.container(border=True):
 
     display_site["AI Status"] = display_site.apply(evaluate_site_status, axis=1)
 
-    # Configured to ensure the column auto-adjusts width
     st.dataframe(
         display_site,
         column_config={
+            "Worker ID": st.column_config.TextColumn("Worker ID", width="medium"),
+            "Days Reported": st.column_config.NumberColumn("Days Reported", width="medium"),
+            "Physical Progress (%)": st.column_config.NumberColumn("Physical Progress (%)", format="%d%%", width="medium"),
             "AI Status": st.column_config.TextColumn("AI Status", width="medium")
         },
         use_container_width=True,
         hide_index=True
     )
 
-    # WhatsApp Alert Triggering
     flagged_site = display_site[display_site["AI Status"] != "Normal ✅"]
     if not flagged_site.empty:
         st.error(f"🚨 **SITE ANOMALIES DETECTED ({len(flagged_site)} Records Flagged)!**")
@@ -81,7 +83,6 @@ with st.container(border=True):
         st.link_button("🚨 Dispatch Site Anomaly Alert via WhatsApp", wa_url)
     else:
         st.success("🟢 **BOX 1 NORMAL:** All site work progress and attendance records are verified.")
-        
 
 # =========================================================
 # BOX 2: BASE PAYROLL AUDIT TABLE
@@ -103,11 +104,11 @@ with st.container(border=True):
     edited_payroll = st.data_editor(
         initial_payroll,
         column_config={
-            "Employee ID": st.column_config.TextColumn("Employee ID", width="small"),
+            "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "Name": st.column_config.TextColumn("Employee Name", width="medium"),
             "Biometric Status": st.column_config.SelectboxColumn("Biometric Status", options=["Verified ✅", "Unverified ❌"], required=True, width="medium"),
-            "Daily Rate (₹)": st.column_config.NumberColumn("Daily Rate (₹)", min_value=500, max_value=10000, step=100, format="₹%d", width="small"),
-            "Days Worked": st.column_config.NumberColumn("Days Worked", min_value=0, max_value=31, step=1, width="small")
+            "Daily Rate (₹)": st.column_config.NumberColumn("Daily Rate (₹)", min_value=500, max_value=10000, step=100, format="₹%d", width="medium"),
+            "Days Worked": st.column_config.NumberColumn("Days Worked", min_value=0, max_value=31, step=1, width="medium")
         },
         use_container_width=True,
         num_rows="dynamic",
@@ -117,18 +118,24 @@ with st.container(border=True):
     display_payroll = edited_payroll.copy()
     display_payroll["Calculated Base Pay (₹)"] = display_payroll["Daily Rate (₹)"] * display_payroll["Days Worked"]
     display_payroll["AI Status"] = display_payroll.apply(
-        lambda r: "PAYROLL ALERT 🚨" if r["Calculated Base Pay (₹)"] > 80000 or r["Biometric Status"] == "Unverified ❌" else "Normal ✅",
+        lambda r: "🚨 PAY OVERRUN" if r["Calculated Base Pay (₹)"] > 80000 or r["Biometric Status"] == "Unverified ❌" else "Normal ✅",
         axis=1
     )
 
     st.dataframe(
         display_payroll,
-        column_config={"Calculated Base Pay (₹)": st.column_config.NumberColumn("Calculated Base Pay (₹)", format="₹%d")},
+        column_config={
+            "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
+            "Daily Rate (₹)": st.column_config.NumberColumn("Daily Rate (₹)", format="₹%d", width="medium"),
+            "Days Worked": st.column_config.NumberColumn("Days Worked", width="medium"),
+            "Calculated Base Pay (₹)": st.column_config.NumberColumn("Calculated Base Pay (₹)", format="₹%d", width="medium"),
+            "AI Status": st.column_config.TextColumn("AI Status", width="medium")
+        },
         use_container_width=True,
         hide_index=True
     )
 
-    flagged_payroll = display_payroll[display_payroll["AI Status"] == "PAYROLL ALERT 🚨"]
+    flagged_payroll = display_payroll[display_payroll["AI Status"] == "🚨 PAY OVERRUN"]
     if not flagged_payroll.empty:
         st.error(f"🚨 **PAYROLL ANOMALY DETECTED ({len(flagged_payroll)} Flagged)!**")
         summary_text = "\n".join([f"- {r['Employee ID']} ({r['Name']}): ₹{r['Calculated Base Pay (₹)']} Pay | Bio: {r['Biometric Status']}" for _, r in flagged_payroll.iterrows()])
@@ -156,7 +163,7 @@ with st.container(border=True):
     edited_extra = st.data_editor(
         extra_data,
         column_config={
-            "Employee ID": st.column_config.TextColumn("Employee ID", width="small"),
+            "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "Name": st.column_config.TextColumn("Employee Name", width="medium"),
             "Approved Base Salary (₹)": st.column_config.NumberColumn("Approved Base Salary (₹)", format="₹%d", width="medium"),
             "Post-Salary Extra Funds (₹)": st.column_config.NumberColumn("Post-Salary Extra Funds (₹)", min_value=0, max_value=500000, step=1000, format="₹%d", width="medium"),
@@ -170,12 +177,20 @@ with st.container(border=True):
     display_extra = edited_extra.copy()
     display_extra["Total Disbursed (₹)"] = display_extra["Approved Base Salary (₹)"] + display_extra["Post-Salary Extra Funds (₹)"]
     display_extra["AI Detection Status"] = display_extra["Post-Salary Extra Funds (₹)"].apply(
-        lambda extra: "EXTRA MONEY ALERT 🚨" if extra > 0 else "Normal ✅"
+        lambda extra: "⚠️ LEAKAGE RISK" if extra > 0 else "Normal ✅"
     )
 
-    st.dataframe(display_extra, use_container_width=True, hide_index=True)
+    st.dataframe(
+        display_extra,
+        column_config={
+            "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
+            "AI Detection Status": st.column_config.TextColumn("AI Detection Status", width="medium")
+        },
+        use_container_width=True,
+        hide_index=True
+    )
 
-    flagged_extra = display_extra[display_extra["AI Detection Status"] == "EXTRA MONEY ALERT 🚨"]
+    flagged_extra = display_extra[display_extra["AI Detection Status"] == "⚠️ LEAKAGE RISK"]
     if not flagged_extra.empty:
         st.error(f"🚨 **UNAUTHORIZED EXTRA MONEY DETECTED ({len(flagged_extra)} Violation Flagged)!**")
         extra_summary = "\n".join([f"- {r['Employee ID']} ({r['Name']}): Base ₹{r['Approved Base Salary (₹)']} + Extra ₹{r['Post-Salary Extra Funds (₹)']} via {r['Disbursal Channel']}" for _, r in flagged_extra.iterrows()])
@@ -205,7 +220,7 @@ with st.container(border=True):
         column_config={
             "Beneficiary Aadhaar ID": st.column_config.TextColumn("Aadhaar / Citizen ID", width="medium"),
             "Citizen Name": st.column_config.TextColumn("Citizen Name", width="medium"),
-            "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", min_value=0, max_value=10, step=1, width="small")
+            "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", min_value=0, max_value=10, step=1, width="medium")
         },
         use_container_width=True,
         num_rows="dynamic",
@@ -217,7 +232,14 @@ with st.container(border=True):
         lambda benefits: "MULTIPLE SCHEME FRAUD ALERT 🚨 (>2 Benefits)" if benefits > 2 else "Approved ✅"
     )
 
-    st.dataframe(display_welfare, use_container_width=True, hide_index=True)
+    st.dataframe(
+        display_welfare,
+        column_config={
+            "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", width="medium")
+        },
+        use_container_width=True,
+        hide_index=True
+    )
 
     flagged_welfare = display_welfare[display_welfare["AI Welfare Status"].str.contains("🚨")]
     if not flagged_welfare.empty:
@@ -246,10 +268,10 @@ with st.container(border=True):
     edited_tenders = st.data_editor(
         initial_tenders,
         column_config={
-            "Tender ID": st.column_config.TextColumn("Tender ID", width="small"),
+            "Tender ID": st.column_config.TextColumn("Tender ID", width="medium"),
             "Department": st.column_config.TextColumn("Department", width="medium"),
-            "Budget (Lakhs INR)": st.column_config.NumberColumn("Budget (Lakhs)", format="₹%d L", width="small"),
-            "Winning Bid (Lakhs INR)": st.column_config.NumberColumn("Winning Bid (Lakhs)", format="₹%d L", width="small"),
+            "Budget (Lakhs INR)": st.column_config.NumberColumn("Budget (Lakhs)", format="₹%d L", width="medium"),
+            "Winning Bid (Lakhs INR)": st.column_config.NumberColumn("Winning Bid (Lakhs)", format="₹%d L", width="medium"),
         },
         use_container_width=True,
         num_rows="dynamic",
@@ -257,11 +279,19 @@ with st.container(border=True):
     )
 
     edited_tenders["Inflation (%)"] = ((edited_tenders["Winning Bid (Lakhs INR)"] - edited_tenders["Budget (Lakhs INR)"]) / edited_tenders["Budget (Lakhs INR)"]) * 100
-    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "TENDER FLAGGED 🚨" if x > 40 else "Normal ✅")
+    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "⚠️ INFLATED BID" if x > 40 else "Normal ✅")
 
-    st.dataframe(edited_tenders, use_container_width=True, hide_index=True)
+    st.dataframe(
+        edited_tenders,
+        column_config={
+            "Tender ID": st.column_config.TextColumn("Tender ID", width="medium"),
+            "AI Status": st.column_config.TextColumn("AI Status", width="medium")
+        },
+        use_container_width=True,
+        hide_index=True
+    )
 
-    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "TENDER FLAGGED 🚨"]
+    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "⚠️ INFLATED BID"]
     if not flagged_tenders.empty:
         st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
         tender_summary = "\n".join([f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" for _, r in flagged_tenders.iterrows()])
@@ -270,4 +300,5 @@ with st.container(border=True):
         st.link_button("🚨 Dispatch Tender Case File via WhatsApp", wa_url)
     else:
         st.success("🟢 **BOX 5 NORMAL:** All submitted bids are within safe budget variance limits (<40% deviation).")
+    
     

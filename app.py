@@ -51,7 +51,9 @@ with st.container(border=True):
 
     display_site = edited_site.copy()
     display_site["AI Progress Status"] = display_site.apply(
-        lambda r: "GHOST WORKER / LOW PROGRESS ALERT 🚨" if (r["Days Reported"] > 20 and r["Physical Progress (%)"] < 50) or r["Site Engineer Verification"] == "Unverified ❌" else "Normal ✅",
+        lambda r: "if physical_progress < 50 and attendance_days > 20:
+    st.error("🚨 BIOMETRIC vs. WORK PROGRESS ANOMALY DETECTED
+        / LOW PROGRESS ALERT 🚨" if (r["Days Reported"] > 20 and r["Physical Progress (%)"] < 50) or r["Site Engineer Verification"] == "Unverified ❌" else "Normal ✅",
         axis=1
     )
 

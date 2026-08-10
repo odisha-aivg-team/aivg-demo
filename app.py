@@ -18,7 +18,7 @@ st.markdown("---")
 
 # 3. Sidebar Configuration
 st.sidebar.header("📱 Vigilance Officer Contact")
-officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919876543210")
+officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919556545988")
 
 # =========================================================
 # BOX 1: SITE WORK PROGRESS TRACKER

@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 
 # ---------------------------------------------------------
-# PAGE CONFIGURATION
+# PAGE CONFIGURATION & HEADER
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="AI Vigilance Grid (AIVG)",
@@ -39,7 +39,7 @@ with col1_side:
         attendance_days = row["Attendance Days"]
         physical_progress = row["Physical Progress (%)"]
         
-        # Line 54 fix: Clean code without wrapping quotes
+        # Line 54: Clean conditional check without wrapping quotes
         if physical_progress < 50 and attendance_days > 20:
             st.error("🚨 BIOMETRIC vs. WORK PROGRESS ANOMALY DETECTED")
             st.warning(f"Flagged {row['Worker ID']} ({row['Worker Name']}): High attendance ({attendance_days} days) but site progress is under {physical_progress}%.")
@@ -150,6 +150,7 @@ with col5_side:
     if not collusion.empty:
         st.error("🚨 BIDDER COLLUSION DETECTED")
         st.warning("Multiple bid submissions received from identical IP addresses.")
+        
     
             
         

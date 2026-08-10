@@ -19,7 +19,6 @@ st.markdown("---")
 # 3. Sidebar Configuration
 st.sidebar.header("📱 Vigilance Officer Contact")
 officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919876543210")
-
 # =========================================================
 # BOX 1: SITE WORK PROGRESS TRACKER
 # =========================================================
@@ -31,7 +30,7 @@ with st.container(border=True):
         {"Worker ID": "WRK_101", "Name": "Ramesh Mohanty", "Site Assigned": "Gosani Road Project", "Days Reported": 26, "Physical Progress (%)": 100, "Site Engineer Verification": "Verified ✅"},
         {"Worker ID": "WRK_102", "Name": "Sita Das", "Site Assigned": "Lingipur Canal Works", "Days Reported": 24, "Physical Progress (%)": 95, "Site Engineer Verification": "Verified ✅"},
         {"Worker ID": "WRK_103", "Name": "Prakash Naik", "Site Assigned": "Gajapati School Building", "Days Reported": 25, "Physical Progress (%)": 40, "Site Engineer Verification": "Verified ✅"},
-        {"Worker ID": "WRK_104", "Name": "Ananya Patnaik", "Site Assigned": "Gosani Community Hall", "Days Reported": 22, "Physical Progress (%)": 85, "Site Engineer Verification": "Unverified ❌"},
+        {"Worker ID": "WRK_104", "Name": "Ananya Patnaik", "Site Assigned": "Gosani Community Hall", "Days Reported": 8, "Physical Progress (%)": 85, "Site Engineer Verification": "Unverified ❌"},
         {"Worker ID": "WRK_105", "Name": "Soumya Ranjan", "Site Assigned": "Lingipur Health Sub-Centre", "Days Reported": 26, "Physical Progress (%)": 100, "Site Engineer Verification": "Verified ✅"},
     ])
 
@@ -50,22 +49,39 @@ with st.container(border=True):
     )
 
     display_site = edited_site.copy()
-    display_site["AI Progress Status"] = display_site.apply(
-        lambda r: "UNVERIFIED ATTENDANCE / LOW PROGRESS ALERT 🚨" if (r["Days Reported"] > 20 and r["Physical Progress (%)"] < 50) or r["Site Engineer Verification"] == "Unverified ❌" else "Normal ✅",
-        axis=1
+
+    # Compact & Shortened Alert Status Logic
+    def evaluate_site_status(row):
+        if row["Site Engineer Verification"] == "Unverified ❌" or row["Days Reported"] < 10:
+            return "🚨 LOW ATTENDANCE"
+        elif row["Days Reported"] > 20 and row["Physical Progress (%)"] < 50:
+            return "⚠️ PROGRESS LAG"
+        else:
+            return "Normal ✅"
+
+    display_site["AI Status"] = display_site.apply(evaluate_site_status, axis=1)
+
+    # Configured to ensure the column auto-adjusts width
+    st.dataframe(
+        display_site,
+        column_config={
+            "AI Status": st.column_config.TextColumn("AI Status", width="medium")
+        },
+        use_container_width=True,
+        hide_index=True
     )
 
-    st.dataframe(display_site, use_container_width=True, hide_index=True)
-
-    flagged_site = display_site[display_site["AI Progress Status"].str.contains("🚨")]
+    # WhatsApp Alert Triggering
+    flagged_site = display_site[display_site["AI Status"] != "Normal ✅"]
     if not flagged_site.empty:
-        st.error(f"🚨 **SITE PROGRESS DISCREPANCY DETECTED ({len(flagged_site)} Anomaly Flagged)!**")
-        summary_text = "\n".join([f"- {r['Worker ID']} ({r['Name']}): {r['Days Reported']} Days | Work: {r['Physical Progress (%)']}% | Status: {r['Site Engineer Verification']}" for _, r in flagged_site.iterrows()])
-        wa_text = f"🚨 *AIVG SITE PROGRESS BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Site Progress Tracker\n\n*Flagged Records:*\n{summary_text}"
+        st.error(f"🚨 **SITE ANOMALIES DETECTED ({len(flagged_site)} Records Flagged)!**")
+        summary_text = "\n".join([f"- {r['Worker ID']} ({r['Name']}): {r['Days Reported']} Days | Work: {r['Physical Progress (%)']}% | Issue: {r['AI Status']}" for _, r in flagged_site.iterrows()])
+        wa_text = f"🚨 *AIVG SITE ANOMALY REPORT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Site Progress Tracker\n\n*Flagged Records:*\n{summary_text}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
         st.link_button("🚨 Dispatch Site Anomaly Alert via WhatsApp", wa_url)
     else:
-        st.success("🟢 **BOX 1 NORMAL:** All site work progress matches attendance records.")
+        st.success("🟢 **BOX 1 NORMAL:** All site work progress and attendance records are verified.")
+        
 
 # =========================================================
 # BOX 2: BASE PAYROLL AUDIT TABLE

@@ -73,7 +73,7 @@ with st.container(border=True):
 
     edited_site["Expected Progress (%)"] = (edited_site["Reported Days Worked"] / 30) * 100
     edited_site["Lag Gap (%)"] = edited_site["Expected Progress (%)"] - edited_site["Physical Progress (%)"]
-    edited_site["AI Status"] = edited_site["Lag Gap (%)"].apply(lambda x: "progress lag" if x > 30 else "normal ✅")
+    edited_site["AI Status"] = edited_site["Lag Gap (%)"].apply(lambda x: "⚠️ progress lag" if x > 30 else "normal ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_site = edited_site[edited_site["AI Status"] != "normal ✅"]
@@ -92,7 +92,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_site = edited_site[edited_site["AI Status"] == "progress lag"]
+    flagged_site = edited_site[edited_site["AI Status"] == "⚠️ progress lag"]
     if not flagged_site.empty:
         st.error(f"🚨 **GHOST WORKER BREACH DETECTED ({len(flagged_site)} Project Flagged)!**")
         site_summary = "\n".join([f"- {r['Project ID']} ({r['Site Location']}): {r['Reported Days Worked']} days logged but only {r['Physical Progress (%)']}% progress (Lag: {r['Lag Gap (%)']:.1f}%)" for _, r in flagged_site.iterrows()])
@@ -143,7 +143,7 @@ with st.container(border=True):
     )
 
     edited_payroll["Excess Amount (INR)"] = edited_payroll["Disbursed Salary (INR)"] - edited_payroll["Sanctioned Salary (INR)"]
-    edited_payroll["AI Status"] = edited_payroll["Excess Amount (INR)"].apply(lambda x: "extra money" if x > 0 else "normal ✅")
+    edited_payroll["AI Status"] = edited_payroll["Excess Amount (INR)"].apply(lambda x: "⚠️ extra money" if x > 0 else "normal ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_payroll = edited_payroll[edited_payroll["AI Status"] != "normal ✅"]
@@ -162,7 +162,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_payroll = edited_payroll[edited_payroll["AI Status"] == "extra money"]
+    flagged_payroll = edited_payroll[edited_payroll["AI Status"] == "⚠️ extra money"]
     if not flagged_payroll.empty:
         st.error(f"🚨 **PAYROLL OVERRUN BREACH DETECTED ({len(flagged_payroll)} Employee Flagged)!**")
         payroll_summary = "\n".join([f"- {r['Employee ID']} ({r['Name']}): Disbursed ₹{r['Disbursed Salary (INR)']} vs Sanctioned ₹{r['Sanctioned Salary (INR)']} (Excess: +₹{r['Excess Amount (INR)']})" for _, r in flagged_payroll.iterrows()])
@@ -212,7 +212,7 @@ with st.container(border=True):
         key="editor_transfers"
     )
 
-    edited_transfers["AI Status"] = edited_transfers["Approval Status"].apply(lambda x: "unapproved transfer" if x == "Unapproved" else "normal ✅")
+    edited_transfers["AI Status"] = edited_transfers["Approval Status"].apply(lambda x: "⚠️ unapproved transfer" if x == "Unapproved" else "normal ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_transfers = edited_transfers[edited_transfers["AI Status"] != "normal ✅"]
@@ -231,7 +231,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_transfers = edited_transfers[edited_transfers["AI Status"] == "unapproved transfer"]
+    flagged_transfers = edited_transfers[edited_transfers["AI Status"] == "⚠️ unapproved transfer"]
     if not flagged_transfers.empty:
         st.error(f"🚨 **UNAPPROVED DISBURSAL BREACH DETECTED ({len(flagged_transfers)} Transfer Flagged)!**")
         transfer_summary = "\n".join([f"- {r['Transfer ID']} (Emp {r['Employee ID']}): ₹{r['Amount (INR)']} ({r['Transfer Type']}) - Status: {r['Approval Status']}" for _, r in flagged_transfers.iterrows()])
@@ -280,7 +280,7 @@ with st.container(border=True):
         key="editor_welfare"
     )
 
-    edited_welfare["AI Status"] = edited_welfare["Enrolled Count"].apply(lambda x: "over-enrolled" if x > 2 else "normal ✅")
+    edited_welfare["AI Status"] = edited_welfare["Enrolled Count"].apply(lambda x: "⚠️ over-enrolled" if x > 2 else "normal ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_welfare = edited_welfare[edited_welfare["AI Status"] != "normal ✅"]
@@ -299,7 +299,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_welfare = edited_welfare[edited_welfare["AI Status"] == "over-enrolled"]
+    flagged_welfare = edited_welfare[edited_welfare["AI Status"] == "⚠️ over-enrolled"]
     if not flagged_welfare.empty:
         st.error(f"🚨 **WELFARE FRAUD BREACH DETECTED ({len(flagged_welfare)} Beneficiary Flagged)!**")
         welfare_summary = "\n".join([f"- {r['Beneficiary ID']} ({r['Aadhaar Hash']}): Enrolled in {r['Enrolled Count']} schemes ({r['Schemes Enrolled']})" for _, r in flagged_welfare.iterrows()])
@@ -350,7 +350,7 @@ with st.container(border=True):
     )
 
     edited_tenders["Inflation (%)"] = ((edited_tenders["Winning Bid (Lakhs INR)"] - edited_tenders["Budget (Lakhs INR)"]) / edited_tenders["Budget (Lakhs INR)"]) * 100
-    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "high variance" if x > 40 else "normal ✅")
+    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "⚠️ high variance" if x > 40 else "normal ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_tenders = edited_tenders[edited_tenders["AI Status"] != "normal ✅"]
@@ -369,7 +369,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "high variance"]
+    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "⚠️ high variance"]
     if not flagged_tenders.empty:
         st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
         tender_summary = "\n".join([f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" for _, r in flagged_tenders.iterrows()])
@@ -389,4 +389,3 @@ with st.container(border=True):
             )
     else:
         st.success("🟢 **BOX 5 NORMAL:** All submitted bids are within safe budget variance limits (<40% deviation).")
-    

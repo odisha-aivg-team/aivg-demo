@@ -357,6 +357,7 @@ with st.container(border=True):
         with col_btn1:
             st.link_button("🚨 Dispatch Benefit Fraud Case File via WhatsApp", wa_url)
         with col_btn2:
+            )
             st.download_button(
                 label="📥 Export Welfare Audit CSV"
     

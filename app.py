@@ -177,7 +177,7 @@ with st.container(border=True):
     display_extra = edited_extra.copy()
     display_extra["Total Disbursed (₹)"] = display_extra["Approved Base Salary (₹)"] + display_extra["Post-Salary Extra Funds (₹)"]
     display_extra["AI Detection Status"] = display_extra["Post-Salary Extra Funds (₹)"].apply(
-        lambda extra: "⚠️ LEAKAGE RISK" if extra > 0 else "Normal ✅"
+        lambda extra: "⚠️ EXTRA PAYMENT" if extra > 0 else "Normal ✅"
     )
 
     st.dataframe(
@@ -190,7 +190,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_extra = display_extra[display_extra["AI Detection Status"] == "⚠️ LEAKAGE RISK"]
+    flagged_extra = display_extra[display_extra["AI Detection Status"] == "⚠️ EXTRA PAYMENT"]
     if not flagged_extra.empty:
         st.error(f"🚨 **UNAUTHORIZED EXTRA MONEY DETECTED ({len(flagged_extra)} Violation Flagged)!**")
         extra_summary = "\n".join([f"- {r['Employee ID']} ({r['Name']}): Base ₹{r['Approved Base Salary (₹)']} + Extra ₹{r['Post-Salary Extra Funds (₹)']} via {r['Disbursal Channel']}" for _, r in flagged_extra.iterrows()])
@@ -279,7 +279,7 @@ with st.container(border=True):
     )
 
     edited_tenders["Inflation (%)"] = ((edited_tenders["Winning Bid (Lakhs INR)"] - edited_tenders["Budget (Lakhs INR)"]) / edited_tenders["Budget (Lakhs INR)"]) * 100
-    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "⚠️ INFLATED BID" if x > 40 else "Normal ✅")
+    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "⚠️ HIGH VARIANCE" if x > 40 else "Normal ✅")
 
     st.dataframe(
         edited_tenders,
@@ -291,7 +291,7 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "⚠️ INFLATED BID"]
+    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "⚠️ HIGH VARIANCE"]
     if not flagged_tenders.empty:
         st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
         tender_summary = "\n".join([f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" for _, r in flagged_tenders.iterrows()])

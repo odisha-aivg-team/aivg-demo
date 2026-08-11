@@ -2,23 +2,63 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# 1. Page Configuration MUST be the first Streamlit command
+# =========================================================
+# 1. Page Configuration (MUST be the first Streamlit command)
+# =========================================================
 st.set_page_config(
     page_title="AIVG - AI Vigilance Grid", 
     page_icon="🛡️", 
     layout="wide"
 )
 
-# 2. Header & Branding
+# =========================================================
+# 2. Custom CSS & Styling
+# =========================================================
+st.markdown("""
+    <style>
+    .stAlert {
+        border-radius: 8px;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# =========================================================
+# 3. Header & Branding
+# =========================================================
 st.title("🛡️ AI Vigilance Grid (AIVG)")
 st.caption("Odiaprenuer 3.0 | Odisha Adarsha Vidyalaya, Lingipur, Gosani, Gajapati | Smart Odisha Hackathon")
 st.markdown("**Theme:** Cyber Security from Corruption — *An AI-Based Automatic Corruption Inquiry System*")
 
 st.markdown("---")
 
-# 3. Sidebar Configuration
+# =========================================================
+# 4. Top-Level KPI Dashboard Banner
+# =========================================================
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric(label="Total Active Workers", value="105", delta="5 New")
+with col2:
+    st.metric(label="Active Procurement Bids", value="₹2.5 Cr", delta="4 Pending")
+with col3:
+    st.metric(label="Total Anomalies Flagged", value="4 Flags", delta="-2 Resolved", delta_color="inverse")
+with col4:
+    st.metric(label="System Security Index", value="98.2%", delta="Optimal ✅")
+
+st.markdown("---")
+
+# =========================================================
+# 5. Sidebar Configuration
+# =========================================================
 st.sidebar.header("📱 Vigilance Officer Contact")
-officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919556545988")
+officer_phone = st.sidebar.text_input("Officer Mobile Number (with 91 prefix):", value="919876543210")
+
+st.sidebar.markdown("---")
+st.sidebar.header("🔍 Global Audit View")
+filter_option = st.sidebar.radio("Display Filter:", ["All Records", "Flagged Anomalies Only 🚨", "Normal Only ✅"])
 
 # =========================================================
 # BOX 1: SITE WORK PROGRESS TRACKER
@@ -51,7 +91,6 @@ with st.container(border=True):
 
     display_site = edited_site.copy()
 
-    # Compact Alert Status Logic
     def evaluate_site_status(row):
         if row["Site Engineer Verification"] == "Unverified ❌" or row["Days Reported"] < 10:
             return "🚨 LOW ATTENDANCE"
@@ -62,8 +101,16 @@ with st.container(border=True):
 
     display_site["AI Status"] = display_site.apply(evaluate_site_status, axis=1)
 
+    # Sidebar Filter Application
+    if filter_option == "Flagged Anomalies Only 🚨":
+        view_site = display_site[display_site["AI Status"] != "Normal ✅"]
+    elif filter_option == "Normal Only ✅":
+        view_site = display_site[display_site["AI Status"] == "Normal ✅"]
+    else:
+        view_site = display_site
+
     st.dataframe(
-        display_site,
+        view_site,
         column_config={
             "Worker ID": st.column_config.TextColumn("Worker ID", width="medium"),
             "Days Reported": st.column_config.NumberColumn("Days Reported", width="medium"),
@@ -80,7 +127,18 @@ with st.container(border=True):
         summary_text = "\n".join([f"- {r['Worker ID']} ({r['Name']}): {r['Days Reported']} Days | Work: {r['Physical Progress (%)']}% | Issue: {r['AI Status']}" for _, r in flagged_site.iterrows()])
         wa_text = f"🚨 *AIVG SITE ANOMALY REPORT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Site Progress Tracker\n\n*Flagged Records:*\n{summary_text}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.link_button("🚨 Dispatch Site Anomaly Alert via WhatsApp", wa_url)
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        with col_btn1:
+            st.link_button("🚨 Dispatch Site Anomaly Alert via WhatsApp", wa_url)
+        with col_btn2:
+            st.download_button(
+                label="📥 Export Site Audit CSV",
+                data=display_site.to_csv(index=False).encode('utf-8'),
+                file_name="AIVG_Site_Progress_Audit.csv",
+                mime="text/csv",
+                key="dl_site"
+            )
     else:
         st.success("🟢 **BOX 1 NORMAL:** All site work progress and attendance records are verified.")
 
@@ -122,8 +180,16 @@ with st.container(border=True):
         axis=1
     )
 
+    # Sidebar Filter Application
+    if filter_option == "Flagged Anomalies Only 🚨":
+        view_payroll = display_payroll[display_payroll["AI Status"] != "Normal ✅"]
+    elif filter_option == "Normal Only ✅":
+        view_payroll = display_payroll[display_payroll["AI Status"] == "Normal ✅"]
+    else:
+        view_payroll = display_payroll
+
     st.dataframe(
-        display_payroll,
+        view_payroll,
         column_config={
             "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "Daily Rate (₹)": st.column_config.NumberColumn("Daily Rate (₹)", format="₹%d", width="medium"),
@@ -141,7 +207,18 @@ with st.container(border=True):
         summary_text = "\n".join([f"- {r['Employee ID']} ({r['Name']}): ₹{r['Calculated Base Pay (₹)']} Pay | Bio: {r['Biometric Status']}" for _, r in flagged_payroll.iterrows()])
         wa_text = f"🚨 *AIVG BASE PAYROLL BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Flagged Records:*\n{summary_text}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.link_button("🚨 Dispatch Base Payroll Case File via WhatsApp", wa_url)
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        with col_btn1:
+            st.link_button("🚨 Dispatch Base Payroll Case File via WhatsApp", wa_url)
+        with col_btn2:
+            st.download_button(
+                label="📥 Export Payroll Audit CSV",
+                data=display_payroll.to_csv(index=False).encode('utf-8'),
+                file_name="AIVG_Base_Payroll_Audit.csv",
+                mime="text/csv",
+                key="dl_payroll"
+            )
     else:
         st.success("🟢 **BOX 2 NORMAL:** Base payroll calculations verified clean.")
 
@@ -166,7 +243,7 @@ with st.container(border=True):
             "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "Name": st.column_config.TextColumn("Employee Name", width="medium"),
             "Approved Base Salary (₹)": st.column_config.NumberColumn("Approved Base Salary (₹)", format="₹%d", width="medium"),
-            "Post-Salary Extra Funds (₹)": st.column_config.NumberColumn("Post-Salary Extra Funds (₹)", min_value=0, max_value=5000000, step=1000, format="₹%d", width="medium"),
+            "Post-Salary Extra Funds (₹)": st.column_config.NumberColumn("Post-Salary Extra Funds (₹)", min_value=0, max_value=500000, step=1000, format="₹%d", width="medium"),
             "Disbursal Channel": st.column_config.SelectboxColumn("Disbursal Channel", options=["Treasury Direct", "Vendor Account", "Third-Party Transfer", "Unlinked Disbursal"], width="medium")
         },
         use_container_width=True,
@@ -177,11 +254,19 @@ with st.container(border=True):
     display_extra = edited_extra.copy()
     display_extra["Total Disbursed (₹)"] = display_extra["Approved Base Salary (₹)"] + display_extra["Post-Salary Extra Funds (₹)"]
     display_extra["AI Detection Status"] = display_extra["Post-Salary Extra Funds (₹)"].apply(
-        lambda extra: "⚠️ EXTRA PAYMENT" if extra > 0 else "Normal ✅"
+        lambda extra: "⚠️ UNAPPROVED DISBURSAL" if extra > 0 else "Normal ✅"
     )
 
+    # Sidebar Filter Application
+    if filter_option == "Flagged Anomalies Only 🚨":
+        view_extra = display_extra[display_extra["AI Detection Status"] != "Normal ✅"]
+    elif filter_option == "Normal Only ✅":
+        view_extra = display_extra[display_extra["AI Detection Status"] == "Normal ✅"]
+    else:
+        view_extra = display_extra
+
     st.dataframe(
-        display_extra,
+        view_extra,
         column_config={
             "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "AI Detection Status": st.column_config.TextColumn("AI Detection Status", width="medium")
@@ -190,13 +275,24 @@ with st.container(border=True):
         hide_index=True
     )
 
-    flagged_extra = display_extra[display_extra["AI Detection Status"] == "⚠️ EXTRA PAYMENT"]
+    flagged_extra = display_extra[display_extra["AI Detection Status"] == "⚠️ UNAPPROVED DISBURSAL"]
     if not flagged_extra.empty:
         st.error(f"🚨 **UNAUTHORIZED EXTRA MONEY DETECTED ({len(flagged_extra)} Violation Flagged)!**")
         extra_summary = "\n".join([f"- {r['Employee ID']} ({r['Name']}): Base ₹{r['Approved Base Salary (₹)']} + Extra ₹{r['Post-Salary Extra Funds (₹)']} via {r['Disbursal Channel']}" for _, r in flagged_extra.iterrows()])
         wa_text = f"🚨 *AIVG EXTRA MONEY BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Module:* Post-Salary Leakage Inspector\n\n*Unauthorized Payments Detected:*\n{extra_summary}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.link_button("🚨 Dispatch Extra Money Breach Alert via WhatsApp", wa_url)
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        with col_btn1:
+            st.link_button("🚨 Dispatch Extra Money Breach Alert via WhatsApp", wa_url)
+        with col_btn2:
+            st.download_button(
+                label="📥 Export Extra Funds Audit CSV",
+                data=display_extra.to_csv(index=False).encode('utf-8'),
+                file_name="AIVG_Extra_Disbursement_Audit.csv",
+                mime="text/csv",
+                key="dl_extra"
+            )
     else:
         st.success("🟢 **BOX 3 NORMAL:** No post-salary unauthorized extra payments detected.")
 
@@ -229,13 +325,22 @@ with st.container(border=True):
 
     display_welfare = edited_welfare.copy()
     display_welfare["AI Welfare Status"] = display_welfare["Total Active Benefits"].apply(
-        lambda benefits: "MULTIPLE SCHEME FRAUD ALERT 🚨 (>2 Benefits)" if benefits > 2 else "Approved ✅"
+        lambda benefits: "🚨 OVER-ENROLLED (>2 Schemes)" if benefits > 2 else "Approved ✅"
     )
 
+    # Sidebar Filter Application
+    if filter_option == "Flagged Anomalies Only 🚨":
+        view_welfare = display_welfare[display_welfare["AI Welfare Status"].str.contains("🚨")]
+    elif filter_option == "Normal Only ✅":
+        view_welfare = display_welfare[~display_welfare["AI Welfare Status"].str.contains("🚨")]
+    else:
+        view_welfare = display_welfare
+
     st.dataframe(
-        display_welfare,
+        view_welfare,
         column_config={
-            "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", width="medium")
+            "Total Active Benefits": st.column_config.NumberColumn("Total Active Benefits", width="medium"),
+            "AI Welfare Status": st.column_config.TextColumn("AI Welfare Status", width="medium")
         },
         use_container_width=True,
         hide_index=True
@@ -247,58 +352,12 @@ with st.container(border=True):
         welfare_summary = "\n".join([f"- {r['Beneficiary Aadhaar ID']} ({r['Citizen Name']}): Enrolled in {r['Total Active Benefits']} Government Schemes" for _, r in flagged_welfare.iterrows()])
         wa_text = f"🚨 *AIVG MULTIPLE SCHEME BENEFIT FRAUD ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Violations Detected:*\n{welfare_summary}"
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.link_button("🚨 Dispatch Benefit Fraud Case File via WhatsApp", wa_url)
-    else:
-        st.success("🟢 **BOX 4 NORMAL:** All citizens are within the allowed limit of government benefits.")
-
-# =========================================================
-# BOX 5: PROCUREMENT & TENDER AUDIT
-# =========================================================
-with st.container(border=True):
-    st.header("📊 Box 5: Real-Time Procurement & Tender Audit Module")
-    st.info("💡 **Tender Audit:** Detects overpricing and inflated bids exceeding 40% of the estimated budget.")
-
-    initial_tenders = pd.DataFrame([
-        {"Tender ID": "TEN_101", "Department": "Roads & Building", "Budget (Lakhs INR)": 50, "Winning Bid (Lakhs INR)": 52},
-        {"Tender ID": "TEN_102", "Department": "Water Resources", "Budget (Lakhs INR)": 60, "Winning Bid (Lakhs INR)": 64},
-        {"Tender ID": "TEN_103", "Department": "Rural Development", "Budget (Lakhs INR)": 40, "Winning Bid (Lakhs INR)": 41},
-        {"Tender ID": "TEN_104", "Department": "Health Infrastructure", "Budget (Lakhs INR)": 100, "Winning Bid (Lakhs INR)": 105},
-    ])
-
-    edited_tenders = st.data_editor(
-        initial_tenders,
-        column_config={
-            "Tender ID": st.column_config.TextColumn("Tender ID", width="medium"),
-            "Department": st.column_config.TextColumn("Department", width="medium"),
-            "Budget (Lakhs INR)": st.column_config.NumberColumn("Budget (Lakhs)", format="₹%d L", width="medium"),
-            "Winning Bid (Lakhs INR)": st.column_config.NumberColumn("Winning Bid (Lakhs)", format="₹%d L", width="medium"),
-        },
-        use_container_width=True,
-        num_rows="dynamic",
-        key="editor_tenders"
-    )
-
-    edited_tenders["Inflation (%)"] = ((edited_tenders["Winning Bid (Lakhs INR)"] - edited_tenders["Budget (Lakhs INR)"]) / edited_tenders["Budget (Lakhs INR)"]) * 100
-    edited_tenders["AI Status"] = edited_tenders["Inflation (%)"].apply(lambda x: "⚠️ HIGH VARIANCE" if x > 40 else "Normal ✅")
-
-    st.dataframe(
-        edited_tenders,
-        column_config={
-            "Tender ID": st.column_config.TextColumn("Tender ID", width="medium"),
-            "AI Status": st.column_config.TextColumn("AI Status", width="medium")
-        },
-        use_container_width=True,
-        hide_index=True
-    )
-
-    flagged_tenders = edited_tenders[edited_tenders["AI Status"] == "⚠️ HIGH VARIANCE"]
-    if not flagged_tenders.empty:
-        st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
-        tender_summary = "\n".join([f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" for _, r in flagged_tenders.iterrows()])
-        wa_text = f"🚨 *AIVG TENDER BREACH ALERT*\n\n*School:* OAV Lingipur, Gosani\n*Flagged Tenders:*\n{tender_summary}"
-        wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
-        st.link_button("🚨 Dispatch Tender Case File via WhatsApp", wa_url)
-    else:
-        st.success("🟢 **BOX 5 NORMAL:** All submitted bids are within safe budget variance limits (<40% deviation).")
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        with col_btn1:
+            st.link_button("🚨 Dispatch Benefit Fraud Case File via WhatsApp", wa_url)
+        with col_btn2:
+            st.download_button(
+                label="📥 Export Welfare Audit CSV"
     
     

@@ -30,7 +30,7 @@ st.sidebar.header("⚙️ Vigilance Controls")
 
 officer_phone = st.sidebar.text_input(
     "Vigilance Officer WhatsApp Number",
-    value="919876543210",
+    value="919556545988",
     help="Enter phone number with country code (e.g., 91XXXXXXXXXX) to receive alerts."
 )
 
@@ -73,7 +73,7 @@ with st.container(border=True):
 
     edited_site["Expected Progress (%)"] = (edited_site["Reported Days Worked"] / 30) * 100
     edited_site["Lag Gap (%)"] = edited_site["Expected Progress (%)"] - edited_site["Physical Progress (%)"]
-    edited_site["AI Status"] = edited_site["Lag Gap (%)"].apply(lambda x: "⚠️ PROGRESS LAG" if x > 30 else "normal ✅")
+    edited_site["AI Status"] = edited_site["Lag Gap (%)"].apply(lambda x: "⚠️ PROGRESS LAG" if x > 30 else "NORMAL ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_site = edited_site[edited_site["AI Status"] != "NORMAL ✅"]
@@ -143,7 +143,7 @@ with st.container(border=True):
     )
 
     edited_payroll["Excess Amount (INR)"] = edited_payroll["Disbursed Salary (INR)"] - edited_payroll["Sanctioned Salary (INR)"]
-    edited_payroll["AI Status"] = edited_payroll["Excess Amount (INR)"].apply(lambda x: "⚠️ EXTRA MONEY" if x > 0 else "normal ✅")
+    edited_payroll["AI Status"] = edited_payroll["Excess Amount (INR)"].apply(lambda x: "⚠️ EXTRA MONEY" if x > 0 else "NORMAL ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_payroll = edited_payroll[edited_payroll["AI Status"] != "NORMAL ✅"]
@@ -212,7 +212,7 @@ with st.container(border=True):
         key="editor_transfers"
     )
 
-    edited_transfers["AI Status"] = edited_transfers["Approval Status"].apply(lambda x: "⚠️ UNAPPROVED TRANSFER" if x == "Unapproved" else "normal ✅")
+    edited_transfers["AI Status"] = edited_transfers["Approval Status"].apply(lambda x: "⚠️ UNAPPROVED TRANSFER" if x == "Unapproved" else "NORMAL ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_transfers = edited_transfers[edited_transfers["AI Status"] != "NORMAL ✅"]
@@ -280,7 +280,7 @@ with st.container(border=True):
         key="editor_welfare"
     )
 
-    edited_welfare["AI Status"] = edited_welfare["Enrolled Count"].apply(lambda x: "⚠️ OVER-ENROLLED" if x > 2 else "normal ✅")
+    edited_welfare["AI Status"] = edited_welfare["Enrolled Count"].apply(lambda x: "⚠️ OVER-ENROLLED" if x > 2 else "NORMAL ✅")
 
     if filter_option == "Flagged Anomalies Only 🚨":
         view_welfare = edited_welfare[edited_welfare["AI Status"] != "NORMAL ✅"]

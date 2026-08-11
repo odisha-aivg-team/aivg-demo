@@ -166,7 +166,7 @@ with st.container(border=True):
             "Employee ID": st.column_config.TextColumn("Employee ID", width="medium"),
             "Name": st.column_config.TextColumn("Employee Name", width="medium"),
             "Approved Base Salary (₹)": st.column_config.NumberColumn("Approved Base Salary (₹)", format="₹%d", width="medium"),
-            "Post-Salary Extra Funds (₹)": st.column_config.NumberColumn("Post-Salary Extra Funds (₹)", min_value=0, max_value=500000, step=1000, format="₹%d", width="medium"),
+            "Post-Salary Extra Funds (₹)": st.column_config.NumberColumn("Post-Salary Extra Funds (₹)", min_value=0, max_value=5000000, step=1000, format="₹%d", width="medium"),
             "Disbursal Channel": st.column_config.SelectboxColumn("Disbursal Channel", options=["Treasury Direct", "Vendor Account", "Third-Party Transfer", "Unlinked Disbursal"], width="medium")
         },
         use_container_width=True,

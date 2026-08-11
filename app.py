@@ -113,10 +113,10 @@ with st.container(border=True):
     if not flagged_site.empty:
         st.error(f"🚨 **GHOST WORKER BREACH DETECTED ({len(flagged_site)} Project Flagged)!**")
         site_summary = "\n".join([
-            f"- {r['Project ID']} ({r['Site Location']}): {r['Reported Days Worked']} days logged but only {r['Physical Progress (%)']}% progress (Lag: {r['Lag Gap (%)']:.1f}%)" 
+            f"- {r['Project ID']} ({r['Site Location']}): {r['Reported Days Worked']} days logged, {r['Physical Progress (%)']}% progress" 
             for _, r in flagged_site.iterrows()
         ])
-        wa_text = "🚨 *AIVG SITE PROGRESS ALERT*\n\n*Target:* Block Development Office, Gosani, Gajapati\n*Flagged Projects:*\n" + site_summary
+        wa_text = "🚨 *AIVG SITE ALERT*\n\n*Target:* Gosani Block\n" + site_summary
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
         
         col_btn1, col_btn2 = st.columns([1, 1])
@@ -186,10 +186,10 @@ with st.container(border=True):
     if not flagged_payroll.empty:
         st.error(f"🚨 **PAYROLL OVERRUN BREACH DETECTED ({len(flagged_payroll)} Employee Flagged)!**")
         payroll_summary = "\n".join([
-            f"- {r['Employee ID']} ({r['Name']}): Disbursed ₹{r['Disbursed Salary (INR)']} vs Sanctioned ₹{r['Sanctioned Salary (INR)']} (Excess: +₹{r['Excess Amount (INR)']})" 
+            f"- {r['Employee ID']} ({r['Name']}): Disbursed ₹{r['Disbursed Salary (INR)']} vs Sanctioned ₹{r['Sanctioned Salary (INR)']}" 
             for _, r in flagged_payroll.iterrows()
         ])
-        wa_text = "🚨 *AIVG PAYROLL BREACH ALERT*\n\n*Target:* Block Development Office, Gosani, Gajapati\n*Flagged Payroll:*\n" + payroll_summary
+        wa_text = "🚨 *AIVG PAYROLL BREACH*\n\n*Target:* Gosani Block\n" + payroll_summary
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
         
         col_btn1, col_btn2 = st.columns([1, 1])
@@ -258,10 +258,10 @@ with st.container(border=True):
     if not flagged_transfers.empty:
         st.error(f"🚨 **UNAPPROVED DISBURSAL BREACH DETECTED ({len(flagged_transfers)} Transfer Flagged)!**")
         transfer_summary = "\n".join([
-            f"- {r['Transfer ID']} (Emp {r['Employee ID']}): ₹{r['Amount (INR)']} ({r['Transfer Type']}) - Status: {r['Approval Status']}" 
+            f"- {r['Transfer ID']} (Emp {r['Employee ID']}): ₹{r['Amount (INR)']} ({r['Transfer Type']})" 
             for _, r in flagged_transfers.iterrows()
         ])
-        wa_text = "🚨 *AIVG EXTRA DISBURSAL ALERT*\n\n*Target:* Block Development Office, Gosani, Gajapati\n*Flagged Transfers:*\n" + transfer_summary
+        wa_text = "🚨 *AIVG EXTRA DISBURSAL ALERT*\n\n*Target:* Gosani Block\n" + transfer_summary
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
         
         col_btn1, col_btn2 = st.columns([1, 1])
@@ -329,10 +329,10 @@ with st.container(border=True):
     if not flagged_welfare.empty:
         st.error(f"🚨 **WELFARE FRAUD BREACH DETECTED ({len(flagged_welfare)} Beneficiary Flagged)!**")
         welfare_summary = "\n".join([
-            f"- {r['Beneficiary ID']} ({r['Aadhaar Hash']}): Enrolled in {r['Enrolled Count']} schemes ({r['Schemes Enrolled']})" 
+            f"- {r['Beneficiary ID']} ({r['Aadhaar Hash']}): Enrolled in {r['Enrolled Count']} schemes" 
             for _, r in flagged_welfare.iterrows()
         ])
-        wa_text = "🚨 *AIVG WELFARE FRAUD ALERT*\n\n*Target:* Block Development Office, Gosani, Gajapati\n*Flagged Beneficiaries:*\n" + welfare_summary
+        wa_text = "🚨 *AIVG WELFARE FRAUD ALERT*\n\n*Target:* Gosani Block\n" + welfare_summary
         wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
         
         col_btn1, col_btn2 = st.columns([1, 1])
@@ -402,7 +402,15 @@ with st.container(border=True):
     if not flagged_tenders.empty:
         st.error(f"🚨 **TENDER INFLATION BREACH DETECTED ({len(flagged_tenders)} Tender Flagged)!**")
         tender_summary = "\n".join([
-            f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L (+{r['Inflation (%)']:.1f}%)" 
+            f"- {r['Tender ID']} ({r['Department']}): Budget ₹{r['Budget (Lakhs INR)']}L vs Bid ₹{r['Winning Bid (Lakhs INR)']}L" 
             for _, r in flagged_tenders.iterrows()
         ])
-        wa_text = "🚨 *AIVG TENDER
+        wa_text = "🚨 *AIVG TENDER BREACH*\n\n*Target:* Gosani Block\n" + tender_summary
+        wa_url = f"https://wa.me/{officer_phone}?text={urllib.parse.quote(wa_text)}"
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        with col_btn1:
+            st.link_button("🚨 Dispatch Tender Case File via WhatsApp", wa_url)
+        with col_btn2:
+            st.download_button(
+                label="📥 Export Te

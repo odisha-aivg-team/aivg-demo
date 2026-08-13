@@ -790,5 +790,22 @@ with st.container(border=True):
 # =========================================================
 
 st.markdown("---")
-st.markdown("## 🤖 Box 6: AI Risk Analysis Engine"
- 
+st.markdown("## 🤖 Box 6: AI Risk Analysis Engine")
+ with st.container(border=True):
+
+    st.info(
+        "This prototype converts detected anomalies into "
+        "a risk assessment for human review."
+    )
+
+    selected_module = st.selectbox(
+        "Select Module for Risk Analysis",
+        [
+            "Site Worker & Progress",
+            "Payroll",
+            "Extra Disbursal",
+            "Welfare Scheme",
+            "Procurement & Tender"
+        ],
+        key="ai_module"
+    )

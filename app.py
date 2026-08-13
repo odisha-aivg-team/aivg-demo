@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import urllib.parse
-from openai import OpenAI
 
 # =========================================================
 # PAGE CONFIGURATION
@@ -14,74 +13,26 @@ st.set_page_config(
 )
 
 # =========================================================
-# AI RISK ANALYSIS FUNCTION
-# =========================================================
-
-def ai_risk_analysis(data, module_name):
-
-    if "OPENAI_API_KEY" not in st.secrets:
-        return "⚠️ OPENAI_API_KEY is not configured in Streamlit Secrets."
-
-    try:
-        client = OpenAI(
-            api_key=st.secrets["OPENAI_API_KEY"]
-        )
-
-        prompt = f"""
-You are the AI Risk Analysis Engine of AIVG
-(AI Vigilance Grid), a prototype anti-corruption
-monitoring system.
-
-Audit Module:
-{module_name}
-
-Flagged Records:
-{data}
-
-Analyze the records and provide:
-
-1. Risk Level: LOW / MEDIUM / HIGH
-2. Risk Score: 0-100
-3. Main anomaly detected
-4. Three warning indicators
-5. Recommended next step
-
-Important:
-- Do not claim that corruption has definitely occurred.
-- These are only risk indicators.
-- Recommend human verification.
-- Keep the report concise and professional.
-"""
-
-        response = client.responses.create(
-            model="gpt-5-mini",
-            input=prompt
-        )
-
-        return response.output_text
-
-    except Exception as e:
-        return f"⚠️ AI analysis error: {str(e)}"
-
-
-# =========================================================
 # HEADER
 # =========================================================
 
-st.title(
-    "🛡️ AI Vigilance Grid (AIVG) - Core Audit Platform"
-)
+st.title("🛡️ AI Vigilance Grid (AIVG)")
+st.subheader("Core Audit & Risk Monitoring Platform")
 
 st.caption(
     "Automated Multi-Vector Anti-Corruption & Fraud Detection System"
 )
 
-st.markdown("""
-> **System Status:** Active Monitoring  
-> **Target Jurisdiction:** Block Development Office, Gosani, Gajapati  
-> **Function:** Real-time stream auditing across project sites,
-> payroll, welfare distributions, and public procurement.
-""")
+st.markdown(
+    """
+    **System Status:** 🟢 Active Monitoring
+
+    **Target Jurisdiction:** Block Development Office, Gosani, Gajapati
+
+    **Function:** Prototype system for identifying unusual patterns
+    in project progress, payroll, transfers, welfare schemes and procurement.
+    """
+)
 
 # =========================================================
 # SIDEBAR
@@ -96,10 +47,8 @@ officer_phone = st.sidebar.text_input(
 
 st.sidebar.markdown("---")
 
-st.sidebar.subheader("🔍 Audit Filter")
-
 filter_option = st.sidebar.radio(
-    "Filter Records across Modules:",
+    "Audit Filter",
     [
         "Show All Records 📋",
         "Flagged Anomalies Only 🚨",
@@ -110,57 +59,57 @@ filter_option = st.sidebar.radio(
 st.sidebar.markdown("---")
 
 st.sidebar.info(
-    "🤖 **AI Agent Active:** Monitoring feeds and flagging irregularities."
+    "🤖 AI Agent Status: Ready for risk analysis"
 )
 
 # =========================================================
 # BOX 1
-# SITE WORKER & PROGRESS AUDIT
+# SITE WORKER & PROGRESS
 # =========================================================
+
+st.markdown("## 🏗️ Box 1: Site Worker & Progress Audit")
 
 with st.container(border=True):
 
-    st.header(
-        "🏗️ Box 1: Site Worker Attendance & Progress Lag Audit"
-    )
-
     st.info(
-        "💡 Flags projects where reported attendance exceeds "
-        "physical progress by >30%."
+        "Flags projects where reported working days indicate "
+        "a significant mismatch with physical progress."
     )
 
-    initial_site = pd.DataFrame([
-        {
-            "Project ID": "PRJ_001",
-            "Site Location": "OAV Lingipur Block A",
-            "Reported Days Worked": 25,
-            "Physical Progress (%)": 80
-        },
-        {
-            "Project ID": "PRJ_002",
-            "Site Location": "Boundary Wall Phase 2",
-            "Reported Days Worked": 30,
-            "Physical Progress (%)": 20
-        },
-        {
-            "Project ID": "PRJ_003",
-            "Site Location": "Science Lab Renovation",
-            "Reported Days Worked": 15,
-            "Physical Progress (%)": 75
-        },
-        {
-            "Project ID": "PRJ_004",
-            "Site Location": "Playground Development",
-            "Reported Days Worked": 28,
-            "Physical Progress (%)": 30
-        }
-    ])
+    initial_site = pd.DataFrame(
+        [
+            {
+                "Project ID": "PRJ_001",
+                "Site Location": "OAV Lingipur Block A",
+                "Reported Days Worked": 25,
+                "Physical Progress (%)": 80
+            },
+            {
+                "Project ID": "PRJ_002",
+                "Site Location": "Boundary Wall Phase 2",
+                "Reported Days Worked": 30,
+                "Physical Progress (%)": 20
+            },
+            {
+                "Project ID": "PRJ_003",
+                "Site Location": "Science Lab Renovation",
+                "Reported Days Worked": 15,
+                "Physical Progress (%)": 75
+            },
+            {
+                "Project ID": "PRJ_004",
+                "Site Location": "Playground Development",
+                "Reported Days Worked": 28,
+                "Physical Progress (%)": 30
+            }
+        ]
+    )
 
     edited_site = st.data_editor(
         initial_site,
         use_container_width=True,
         num_rows="dynamic",
-        key="editor_site"
+        key="site_editor"
     )
 
     edited_site["Expected Progress (%)"] = (
@@ -173,8 +122,7 @@ with st.container(border=True):
     )
 
     edited_site["AI Status"] = edited_site["Lag Gap (%)"].apply(
-        lambda x:
-        "⚠️ PROGRESS LAG"
+        lambda x: "⚠️ PROGRESS LAG"
         if x > 30
         else "NORMAL ✅"
     )
@@ -208,106 +156,109 @@ with st.container(border=True):
     if not flagged_site.empty:
 
         st.error(
-            f"🚨 GHOST WORKER BREACH DETECTED "
-            f"({len(flagged_site)} Project Flagged)!"
+            f"🚨 {len(flagged_site)} project(s) flagged for review."
         )
 
-        site_summary = "\n".join([
-            f"- {r['Project ID']} ({r['Site Location']}): "
-            f"{r['Reported Days Worked']} days logged, "
-            f"{r['Physical Progress (%)']}% progress"
-            for _, r in flagged_site.iterrows()
-        ])
-
-        wa_text = (
-            "🚨 AIVG SITE PROGRESS ALERT\n\n"
-            "School: OAV Lingipur, Gosani\n"
-            f"{site_summary}"
+        site_summary = "\n".join(
+            [
+                f"- {row['Project ID']} | "
+                f"{row['Site Location']} | "
+                f"Progress: {row['Physical Progress (%)']}%"
+                for _, row in flagged_site.iterrows()
+            ]
         )
 
-        wa_url = (
-            f"https://wa.me/{officer_phone}"
-            f"?text={urllib.parse.quote(wa_text)}"
+        whatsapp_text = (
+            "AIVG SITE AUDIT ALERT\n\n"
+            + site_summary
+        )
+
+        whatsapp_url = (
+            "https://wa.me/"
+            + officer_phone
+            + "?text="
+            + urllib.parse.quote(whatsapp_text)
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.link_button(
-                "🚨 Dispatch Site Alert",
-                wa_url
+                "🚨 Send WhatsApp Alert",
+                whatsapp_url
             )
 
         with col2:
+
             st.download_button(
-                "📥 Export Site Audit CSV",
-                edited_site.to_csv(
+                label="📥 Download Site Audit",
+                data=edited_site.to_csv(
                     index=False
                 ).encode("utf-8"),
-                "AIVG_Site_Progress_Audit.csv",
-                "text/csv",
-                key="dl_site"
+                file_name="AIVG_Site_Audit.csv",
+                mime="text/csv",
+                key="site_download"
             )
 
     else:
 
         st.success(
-            "🟢 BOX 1 NORMAL: Attendance logs match physical progress."
+            "🟢 No site progress anomalies detected."
         )
-
-st.markdown("---")
 
 # =========================================================
 # BOX 2
-# PAYROLL AUDIT
+# PAYROLL
 # =========================================================
+
+st.markdown("---")
+st.markdown("## 💰 Box 2: Employee Payroll Audit")
 
 with st.container(border=True):
 
-    st.header(
-        "💰 Box 2: Employee Payroll & Excess Salary Audit"
-    )
-
     st.info(
-        "💡 Detects salary disbursals exceeding sanctioned limits."
+        "Detects differences between sanctioned and disbursed salary."
     )
 
-    initial_payroll = pd.DataFrame([
-        {
-            "Employee ID": "EMP_101",
-            "Name": "Ramesh Kumar",
-            "Role": "Staff",
-            "Sanctioned Salary (INR)": 35000,
-            "Disbursed Salary (INR)": 35000
-        },
-        {
-            "Employee ID": "EMP_102",
-            "Name": "Suresh Mohanty",
-            "Role": "Supervisor",
-            "Sanctioned Salary (INR)": 45000,
-            "Disbursed Salary (INR)": 60000
-        },
-        {
-            "Employee ID": "EMP_103",
-            "Name": "Anita Panda",
-            "Role": "Accountant",
-            "Sanctioned Salary (INR)": 40000,
-            "Disbursed Salary (INR)": 40000
-        },
-        {
-            "Employee ID": "EMP_104",
-            "Name": "Prakash Swain",
-            "Role": "Technical Asst",
-            "Sanctioned Salary (INR)": 38000,
-            "Disbursed Salary (INR)": 52000
-        }
-    ])
+    initial_payroll = pd.DataFrame(
+        [
+            {
+                "Employee ID": "EMP_101",
+                "Name": "Ramesh Kumar",
+                "Role": "Staff",
+                "Sanctioned Salary (INR)": 35000,
+                "Disbursed Salary (INR)": 35000
+            },
+            {
+                "Employee ID": "EMP_102",
+                "Name": "Suresh Mohanty",
+                "Role": "Supervisor",
+                "Sanctioned Salary (INR)": 45000,
+                "Disbursed Salary (INR)": 60000
+            },
+            {
+                "Employee ID": "EMP_103",
+                "Name": "Anita Panda",
+                "Role": "Accountant",
+                "Sanctioned Salary (INR)": 40000,
+                "Disbursed Salary (INR)": 40000
+            },
+            {
+                "Employee ID": "EMP_104",
+                "Name": "Prakash Swain",
+                "Role": "Technical Assistant",
+                "Sanctioned Salary (INR)": 38000,
+                "Disbursed Salary (INR)": 52000
+            }
+        ]
+    )
 
     edited_payroll = st.data_editor(
         initial_payroll,
         use_container_width=True,
         num_rows="dynamic",
-        key="editor_payroll"
+        key="payroll_editor"
     )
 
     edited_payroll["Excess Amount (INR)"] = (
@@ -317,8 +268,7 @@ with st.container(border=True):
 
     edited_payroll["AI Status"] = (
         edited_payroll["Excess Amount (INR)"].apply(
-            lambda x:
-            "⚠️ EXTRA MONEY"
+            lambda x: "⚠️ EXTRA MONEY"
             if x > 0
             else "NORMAL ✅"
         )
@@ -353,110 +303,113 @@ with st.container(border=True):
     if not flagged_payroll.empty:
 
         st.error(
-            f"🚨 PAYROLL OVERRUN DETECTED "
-            f"({len(flagged_payroll)} Employee Flagged)!"
+            f"🚨 {len(flagged_payroll)} payroll record(s) flagged."
         )
 
-        payroll_summary = "\n".join([
-            f"- {r['Employee ID']} ({r['Name']}): "
-            f"Excess ₹{r['Excess Amount (INR)']}"
-            for _, r in flagged_payroll.iterrows()
-        ])
-
-        wa_text = (
-            "🚨 AIVG PAYROLL ALERT\n\n"
-            f"{payroll_summary}"
+        payroll_text = "\n".join(
+            [
+                f"- {row['Employee ID']} | "
+                f"Excess: ₹{row['Excess Amount (INR)']}"
+                for _, row in flagged_payroll.iterrows()
+            ]
         )
 
-        wa_url = (
-            f"https://wa.me/{officer_phone}"
-            f"?text={urllib.parse.quote(wa_text)}"
+        whatsapp_text = (
+            "AIVG PAYROLL ALERT\n\n"
+            + payroll_text
+        )
+
+        whatsapp_url = (
+            "https://wa.me/"
+            + officer_phone
+            + "?text="
+            + urllib.parse.quote(whatsapp_text)
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.link_button(
-                "🚨 Dispatch Payroll Alert",
-                wa_url
+                "🚨 Send Payroll Alert",
+                whatsapp_url
             )
 
         with col2:
+
             st.download_button(
-                "📥 Export Payroll CSV",
-                edited_payroll.to_csv(
+                label="📥 Download Payroll Audit",
+                data=edited_payroll.to_csv(
                     index=False
                 ).encode("utf-8"),
-                "AIVG_Payroll_Audit.csv",
-                "text/csv",
-                key="dl_payroll"
+                file_name="AIVG_Payroll_Audit.csv",
+                mime="text/csv",
+                key="payroll_download"
             )
 
     else:
 
         st.success(
-            "🟢 BOX 2 NORMAL: Salaries match sanctioned amounts."
+            "🟢 No payroll anomalies detected."
         )
-
-st.markdown("---")
 
 # =========================================================
 # BOX 3
-# EXTRA DISBURSAL AUDIT
+# EXTRA DISBURSAL
 # =========================================================
+
+st.markdown("---")
+st.markdown("## 💸 Box 3: Extra Disbursal Audit")
 
 with st.container(border=True):
 
-    st.header(
-        "💸 Box 3: Post-Salary Extra Disbursal Audit"
-    )
-
     st.info(
-        "💡 Flags secondary unapproved financial transfers."
+        "Flags secondary transfers that do not have approval."
     )
 
-    initial_transfers = pd.DataFrame([
-        {
-            "Transfer ID": "TRX_801",
-            "Employee ID": "EMP_102",
-            "Transfer Type": "Bonus / Vendor Transfer",
-            "Amount (INR)": 15000,
-            "Approval Status": "Unapproved"
-        },
-        {
-            "Transfer ID": "TRX_802",
-            "Employee ID": "EMP_101",
-            "Transfer Type": "TA / DA Reimbursement",
-            "Amount (INR)": 2000,
-            "Approval Status": "Approved"
-        },
-        {
-            "Transfer ID": "TRX_803",
-            "Employee ID": "EMP_104",
-            "Transfer Type": "Special Allowance",
-            "Amount (INR)": 12000,
-            "Approval Status": "Unapproved"
-        },
-        {
-            "Transfer ID": "TRX_804",
-            "Employee ID": "EMP_103",
-            "Transfer Type": "Medical Reimbursement",
-            "Amount (INR)": 3500,
-            "Approval Status": "Approved"
-        }
-    ])
+    initial_transfers = pd.DataFrame(
+        [
+            {
+                "Transfer ID": "TRX_801",
+                "Employee ID": "EMP_102",
+                "Transfer Type": "Bonus / Vendor Transfer",
+                "Amount (INR)": 15000,
+                "Approval Status": "Unapproved"
+            },
+            {
+                "Transfer ID": "TRX_802",
+                "Employee ID": "EMP_101",
+                "Transfer Type": "TA / DA Reimbursement",
+                "Amount (INR)": 2000,
+                "Approval Status": "Approved"
+            },
+            {
+                "Transfer ID": "TRX_803",
+                "Employee ID": "EMP_104",
+                "Transfer Type": "Special Allowance",
+                "Amount (INR)": 12000,
+                "Approval Status": "Unapproved"
+            },
+            {
+                "Transfer ID": "TRX_804",
+                "Employee ID": "EMP_103",
+                "Transfer Type": "Medical Reimbursement",
+                "Amount (INR)": 3500,
+                "Approval Status": "Approved"
+            }
+        ]
+    )
 
     edited_transfers = st.data_editor(
         initial_transfers,
         use_container_width=True,
         num_rows="dynamic",
-        key="editor_transfers"
+        key="transfer_editor"
     )
 
     edited_transfers["AI Status"] = (
         edited_transfers["Approval Status"].apply(
-            lambda x:
-            "⚠️ UNAPPROVED TRANSFER"
+            lambda x: "⚠️ UNAPPROVED TRANSFER"
             if x == "Unapproved"
             else "NORMAL ✅"
         )
@@ -492,109 +445,112 @@ with st.container(border=True):
     if not flagged_transfers.empty:
 
         st.error(
-            f"🚨 UNAPPROVED TRANSFER DETECTED "
-            f"({len(flagged_transfers)} Transfer Flagged)!"
+            f"🚨 {len(flagged_transfers)} transfer(s) flagged."
         )
 
-        transfer_summary = "\n".join([
-            f"- {r['Transfer ID']}: "
-            f"₹{r['Amount (INR)']} "
-            f"({r['Transfer Type']})"
-            for _, r in flagged_transfers.iterrows()
-        ])
-
-        wa_text = (
-            "🚨 AIVG EXTRA DISBURSAL ALERT\n\n"
-            f"{transfer_summary}"
+        transfer_text = "\n".join(
+            [
+                f"- {row['Transfer ID']} | "
+                f"₹{row['Amount (INR)']} | "
+                f"{row['Transfer Type']}"
+                for _, row in flagged_transfers.iterrows()
+            ]
         )
 
-        wa_url = (
-            f"https://wa.me/{officer_phone}"
-            f"?text={urllib.parse.quote(wa_text)}"
+        whatsapp_text = (
+            "AIVG EXTRA DISBURSAL ALERT\n\n"
+            + transfer_text
+        )
+
+        whatsapp_url = (
+            "https://wa.me/"
+            + officer_phone
+            + "?text="
+            + urllib.parse.quote(whatsapp_text)
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.link_button(
-                "🚨 Dispatch Disbursal Alert",
-                wa_url
+                "🚨 Send Disbursal Alert",
+                whatsapp_url
             )
 
         with col2:
+
             st.download_button(
-                "📥 Export Disbursal CSV",
-                edited_transfers.to_csv(
+                label="📥 Download Disbursal Audit",
+                data=edited_transfers.to_csv(
                     index=False
                 ).encode("utf-8"),
-                "AIVG_Extra_Disbursal_Audit.csv",
-                "text/csv",
-                key="dl_transfers"
+                file_name="AIVG_Disbursal_Audit.csv",
+                mime="text/csv",
+                key="transfer_download"
             )
 
     else:
 
         st.success(
-            "🟢 BOX 3 NORMAL: All transfers have approval clearance."
+            "🟢 No unapproved transfers detected."
         )
-
-st.markdown("---")
 
 # =========================================================
 # BOX 4
-# WELFARE AUDIT
+# WELFARE
 # =========================================================
+
+st.markdown("---")
+st.markdown("## 📋 Box 4: Welfare Scheme Audit")
 
 with st.container(border=True):
 
-    st.header(
-        "📋 Box 4: Multi-Benefit Scheme Fraud Audit"
-    )
-
     st.info(
-        "💡 Flags individuals enrolled in more than 2 schemes."
+        "Flags beneficiaries enrolled in more than two schemes."
     )
 
-    initial_welfare = pd.DataFrame([
-        {
-            "Beneficiary ID": "BEN_301",
-            "Aadhaar Hash": "XXXX-XXXX-1234",
-            "Schemes Enrolled": "Kalia, PM-Kisan",
-            "Enrolled Count": 2
-        },
-        {
-            "Beneficiary ID": "BEN_302",
-            "Aadhaar Hash": "XXXX-XXXX-5678",
-            "Schemes Enrolled":
-                "Kalia, PM-Kisan, NFSA, Subhadra",
-            "Enrolled Count": 4
-        },
-        {
-            "Beneficiary ID": "BEN_303",
-            "Aadhaar Hash": "XXXX-XXXX-9012",
-            "Schemes Enrolled": "NFSA",
-            "Enrolled Count": 1
-        },
-        {
-            "Beneficiary ID": "BEN_304",
-            "Aadhaar Hash": "XXXX-XXXX-3456",
-            "Schemes Enrolled":
-                "Kalia, PM-Kisan, Mo Kudia",
-            "Enrolled Count": 3
-        }
-    ])
+    initial_welfare = pd.DataFrame(
+        [
+            {
+                "Beneficiary ID": "BEN_301",
+                "Aadhaar Hash": "XXXX-XXXX-1234",
+                "Schemes Enrolled": "Kalia, PM-Kisan",
+                "Enrolled Count": 2
+            },
+            {
+                "Beneficiary ID": "BEN_302",
+                "Aadhaar Hash": "XXXX-XXXX-5678",
+                "Schemes Enrolled":
+                    "Kalia, PM-Kisan, NFSA, Subhadra",
+                "Enrolled Count": 4
+            },
+            {
+                "Beneficiary ID": "BEN_303",
+                "Aadhaar Hash": "XXXX-XXXX-9012",
+                "Schemes Enrolled": "NFSA",
+                "Enrolled Count": 1
+            },
+            {
+                "Beneficiary ID": "BEN_304",
+                "Aadhaar Hash": "XXXX-XXXX-3456",
+                "Schemes Enrolled":
+                    "Kalia, PM-Kisan, Mo Kudia",
+                "Enrolled Count": 3
+            }
+        ]
+    )
 
     edited_welfare = st.data_editor(
         initial_welfare,
         use_container_width=True,
         num_rows="dynamic",
-        key="editor_welfare"
+        key="welfare_editor"
     )
 
     edited_welfare["AI Status"] = (
         edited_welfare["Enrolled Count"].apply(
-            lambda x:
-            "⚠️ OVER-ENROLLED"
+            lambda x: "⚠️ OVER-ENROLLED"
             if x > 2
             else "NORMAL ✅"
         )
@@ -630,100 +586,104 @@ with st.container(border=True):
     if not flagged_welfare.empty:
 
         st.error(
-            f"🚨 WELFARE OVER-ENROLLMENT DETECTED "
-            f"({len(flagged_welfare)} Beneficiary Flagged)!"
+            f"🚨 {len(flagged_welfare)} beneficiary record(s) flagged."
         )
 
-        welfare_summary = "\n".join([
-            f"- {r['Beneficiary ID']}: "
-            f"{r['Enrolled Count']} schemes"
-            for _, r in flagged_welfare.iterrows()
-        ])
-
-        wa_text = (
-            "🚨 AIVG WELFARE ALERT\n\n"
-            f"{welfare_summary}"
+        welfare_text = "\n".join(
+            [
+                f"- {row['Beneficiary ID']} | "
+                f"{row['Enrolled Count']} schemes"
+                for _, row in flagged_welfare.iterrows()
+            ]
         )
 
-        wa_url = (
-            f"https://wa.me/{officer_phone}"
-            f"?text={urllib.parse.quote(wa_text)}"
+        whatsapp_text = (
+            "AIVG WELFARE ALERT\n\n"
+            + welfare_text
+        )
+
+        whatsapp_url = (
+            "https://wa.me/"
+            + officer_phone
+            + "?text="
+            + urllib.parse.quote(whatsapp_text)
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.link_button(
-                "🚨 Dispatch Welfare Alert",
-                wa_url
+                "🚨 Send Welfare Alert",
+                whatsapp_url
             )
 
         with col2:
+
             st.download_button(
-                "📥 Export Welfare CSV",
-                edited_welfare.to_csv(
+                label="📥 Download Welfare Audit",
+                data=edited_welfare.to_csv(
                     index=False
                 ).encode("utf-8"),
-                "AIVG_Welfare_Fraud_Audit.csv",
-                "text/csv",
-                key="dl_welfare"
+                file_name="AIVG_Welfare_Audit.csv",
+                mime="text/csv",
+                key="welfare_download"
             )
 
     else:
 
         st.success(
-            "🟢 BOX 4 NORMAL: No over-enrollment detected."
+            "🟢 No welfare over-enrollment detected."
         )
-
-st.markdown("---")
 
 # =========================================================
 # BOX 5
-# PROCUREMENT & TENDER AUDIT
+# PROCUREMENT & TENDER
 # =========================================================
+
+st.markdown("---")
+st.markdown("## 📊 Box 5: Procurement & Tender Audit")
 
 with st.container(border=True):
 
-    st.header(
-        "📊 Box 5: Procurement & Tender Audit"
-    )
-
     st.info(
-        "💡 Detects bids exceeding 40% of estimated budget."
+        "Flags winning bids that exceed the estimated budget by more than 40%."
     )
 
-    initial_tenders = pd.DataFrame([
-        {
-            "Tender ID": "TEN_101",
-            "Department": "Roads & Building",
-            "Budget (Lakhs INR)": 50,
-            "Winning Bid (Lakhs INR)": 52
-        },
-        {
-            "Tender ID": "TEN_102",
-            "Department": "Water Resources",
-            "Budget (Lakhs INR)": 60,
-            "Winning Bid (Lakhs INR)": 90
-        },
-        {
-            "Tender ID": "TEN_103",
-            "Department": "Rural Development",
-            "Budget (Lakhs INR)": 40,
-            "Winning Bid (Lakhs INR)": 41
-        },
-        {
-            "Tender ID": "TEN_104",
-            "Department": "Health Infrastructure",
-            "Budget (Lakhs INR)": 100,
-            "Winning Bid (Lakhs INR)": 150
-        }
-    ])
+    initial_tenders = pd.DataFrame(
+        [
+            {
+                "Tender ID": "TEN_101",
+                "Department": "Roads & Building",
+                "Budget (Lakhs INR)": 50,
+                "Winning Bid (Lakhs INR)": 52
+            },
+            {
+                "Tender ID": "TEN_102",
+                "Department": "Water Resources",
+                "Budget (Lakhs INR)": 60,
+                "Winning Bid (Lakhs INR)": 90
+            },
+            {
+                "Tender ID": "TEN_103",
+                "Department": "Rural Development",
+                "Budget (Lakhs INR)": 40,
+                "Winning Bid (Lakhs INR)": 41
+            },
+            {
+                "Tender ID": "TEN_104",
+                "Department": "Health Infrastructure",
+                "Budget (Lakhs INR)": 100,
+                "Winning Bid (Lakhs INR)": 150
+            }
+        ]
+    )
 
     edited_tenders = st.data_editor(
         initial_tenders,
         use_container_width=True,
         num_rows="dynamic",
-        key="editor_tenders"
+        key="tender_editor"
     )
 
     edited_tenders["Inflation (%)"] = (
@@ -736,8 +696,7 @@ with st.container(border=True):
 
     edited_tenders["AI Status"] = (
         edited_tenders["Inflation (%)"].apply(
-            lambda x:
-            "⚠️ HIGH VARIANCE"
+            lambda x: "⚠️ HIGH VARIANCE"
             if x > 40
             else "NORMAL ✅"
         )
@@ -773,37 +732,63 @@ with st.container(border=True):
     if not flagged_tenders.empty:
 
         st.error(
-            f"🚨 TENDER VARIANCE DETECTED "
-            f"({len(flagged_tenders)} Tender Flagged)!"
+            f"🚨 {len(flagged_tenders)} tender(s) flagged."
         )
 
-        tender_summary = "\n".join([
-            f"- {r['Tender ID']} ({r['Department']}): "
-            f"Budget ₹{r['Budget (Lakhs INR)']}L vs "
-            f"Bid ₹{r['Winning Bid (Lakhs INR)']}L "
-            f"(+{r['Inflation (%)']:.1f}%)"
-            for _, r in flagged_tenders.iterrows()
-        ])
-
-        wa_text = (
-            "🚨 AIVG TENDER ALERT\n\n"
-            f"{tender_summary}"
+        tender_text = "\n".join(
+            [
+                f"- {row['Tender ID']} | "
+                f"Budget ₹{row['Budget (Lakhs INR)']}L | "
+                f"Bid ₹{row['Winning Bid (Lakhs INR)']}L | "
+                f"Variance {row['Inflation (%)']:.1f}%"
+                for _, row in flagged_tenders.iterrows()
+            ]
         )
 
-        wa_url = (
-            f"https://wa.me/{officer_phone}"
-            f"?text={urllib.parse.quote(wa_text)}"
+        whatsapp_text = (
+            "AIVG TENDER ALERT\n\n"
+            + tender_text
+        )
+
+        whatsapp_url = (
+            "https://wa.me/"
+            + officer_phone
+            + "?text="
+            + urllib.parse.quote(whatsapp_text)
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.link_button(
-                "🚨 Dispatch Tender Alert",
-                wa_url
+                "🚨 Send Tender Alert",
+                whatsapp_url
             )
 
         with col2:
+
             st.download_button(
-                "📥 Export Tender CSV",
+                label="📥 Download Tender Audit",
+                data=edited_tenders.to_csv(
+                    index=False
+                ).encode("utf-8"),
+                file_name="AIVG_Tender_Audit.csv",
+                mime="text/csv",
+                key="tender_download"
+            )
+
+    else:
+
+        st.success(
+            "🟢 No tender variance above the defined threshold."
+        )
+
+# =========================================================
+# BOX 6
+# AI RISK ANALYSIS
+# =========================================================
+
+st.markdown("---")
+st.markdown("## 🤖 Box 6: AI Risk Analysis Engine"
  

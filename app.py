@@ -791,7 +791,8 @@ with st.container(border=True):
 
 st.markdown("---")
 st.markdown("## 🤖 Box 6: AI Risk Analysis Engine")
- with st.container(border=True):
+
+with st.container(border=True):
 
     st.info(
         "This prototype converts detected anomalies into "
@@ -809,3 +810,186 @@ st.markdown("## 🤖 Box 6: AI Risk Analysis Engine")
         ],
         key="ai_module"
     )
+
+    if selected_module == "Site Worker & Progress":
+
+        selected_data = edited_site[
+            edited_site["AI Status"] != "NORMAL ✅"
+        ]
+
+    elif selected_module == "Payroll":
+
+        selected_data = edited_payroll[
+            edited_payroll["AI Status"] != "NORMAL ✅"
+        ]
+
+    elif selected_module == "Extra Disbursal":
+
+        selected_data = edited_transfers[
+            edited_transfers["AI Status"] != "NORMAL ✅"
+        ]
+
+    elif selected_module == "Welfare Scheme":
+
+        selected_data = edited_welfare[
+            edited_welfare["AI Status"] != "NORMAL ✅"
+        ]
+
+    else:
+
+        selected_data = edited_tenders[
+            edited_tenders["AI Status"] != "NORMAL ✅"
+        ]
+
+    st.subheader("🚨 Records Selected for Analysis")
+
+    if selected_data.empty:
+
+        st.success(
+            "🟢 No flagged records are available for this module."
+        )
+
+    else:
+
+        st.dataframe(
+            selected_data,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.subheader("🧠 Risk Assessment")
+
+        risk_scores = []
+
+        for _, row in selected_data.iterrows():
+
+            status = str(
+                row.get("AI Status", "")
+            )
+
+            if "HIGH" in status:
+                score = 85
+
+            elif "EXTRA" in status:
+                score = 85
+
+            elif "UNAPPROVED" in status:
+                score = 80
+
+            elif "OVER-ENROLLED" in status:
+                score = 75
+
+            elif "PROGRESS" in status:
+                score = 70
+
+            else:
+                score = 50
+
+            risk_scores.append(score)
+
+        average_score = (
+            sum(risk_scores)
+            / len(risk_scores)
+        )
+
+        if average_score >= 80:
+
+            risk_level = "🔴 HIGH"
+
+        elif average_score >= 60:
+
+            risk_level = "🟠 MEDIUM"
+
+        else:
+
+            risk_level = "🟢 LOW"
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            st.metric(
+                "Risk Score",
+                f"{average_score:.0f}/100"
+            )
+
+        with col2:
+
+            st.metric(
+                "Risk Level",
+                risk_level
+            )
+
+        st.markdown("### 🔎 Screening Summary")
+
+        st.write(
+            f"""
+**Module:** {selected_module}
+
+**Records Flagged:** {len(selected_data)}
+
+**Risk Level:** {risk_level}
+
+The AIVG prototype has identified unusual
+records requiring additional verification.
+"""
+        )
+
+        st.warning(
+            "⚠️ This is a demonstration risk-screening system. "
+            "A flagged record does not prove corruption or fraud. "
+            "Human verification is required."
+        )
+
+# =========================================================
+# SYSTEM SUMMARY
+# =========================================================
+
+st.markdown("---")
+
+st.markdown("## 📊 AIVG System Summary")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+
+    st.metric(
+        "Audit Modules",
+        "5"
+    )
+
+with col2:
+
+    total_flagged = (
+        len(flagged_site)
+        + len(flagged_payroll)
+        + len(flagged_transfers)
+        + len(flagged_welfare)
+        + len(flagged_tenders)
+    )
+
+    st.metric(
+        "Flagged Records",
+        total_flagged
+    )
+
+with col3:
+
+    st.metric(
+        "CSV Export",
+        "Available"
+    )
+
+with col4:
+
+    st.metric(
+        "Alert System",
+        "WhatsApp"
+    )
+
+st.markdown("---")
+
+st.caption(
+    "🛡️ AIVG — AI Vigilance Grid | "
+    "Educational Hackathon Prototype"
+        )
